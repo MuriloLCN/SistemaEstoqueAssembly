@@ -14,4 +14,14 @@ Na consulta financeira, o total de compra indica o total gasto com as compras do
 Os trabalhos devem ser feitos em grupos de no máximo 3 alunos. O código fonte deve ser entregue juntamente com um relatório contendo: identificação dos participantes, descrição dos principais módulos desenvolvidos e auto-avaliação do funcionamento (elencar as partes que funcionam corretamente, as partes que não funcionam corretamente e sob quais circunstancias, bem como as partes que não foram implementadas). O programa deve ser estruturado em procedimentos/funções Deve-se utilizar menu de opções. O código deve ser comentado. Entregar o código fonte.
 
 OBS: O trabalho será apresentado.
+
+Lista de funções
+> Inserção de produto
+> Remoção de produtos
+> Atualização
+> Consulta
+> Consulta financeira
+> Gravação na memória
+> Leitura Memória
+> Relatório
 */
