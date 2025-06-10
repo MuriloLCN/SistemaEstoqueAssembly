@@ -24,4 +24,15 @@ Lista de funções
 > Gravação na memória
 > Leitura Memória
 > Relatório
+
+Deslocamentos
+0-15: Nome
+16-19: Lote
+20-23: Tipo
+24-27: Data de validade
+28-43: Fornecedor
+44-47: Quantidade do estoque
+48-51: Valor de compra
+52-55: Valor de venda
+56-59: Ponteiro para o próximo
 */
