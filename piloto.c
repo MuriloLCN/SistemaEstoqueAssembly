@@ -90,6 +90,12 @@ int op_menu;
 FILE *arquivo_ptr;
 
 char* no_anterior;
+char* novo_no;
+
+// Inserção
+
+char nome_novo_produto[16];
+int resultado_comparacao;
 
 void carregar_dados_no()
 {
@@ -118,10 +124,11 @@ void print_no()
 
     // Buscar tipo de produto
 
-    char str_tipo_produto[16] = "teste placeholder";
+    char str_tipo_produto[16] = "teste placehol";
     printf("Produto: %s | Lote: %d, tipo: %s, data de validade: %d, fornecedor: %s, quantidade no estoque: %d, valor de compra: %f, valor de venda: %f",nome_produto,lote_produto,str_tipo_produto, data_validade, fornecedor, quantidade_estoque, valor_compra, valor_venda);
 }
-void insercao_produto()
+
+void pegar_dados_produto_input()
 {
     printf("\nInsira:\nNome do produto:\n>> ");
     scanf("%s", nome_produto);
@@ -147,26 +154,74 @@ void insercao_produto()
 
     printf("\nValor venda:\n>> ");
     scanf("%f", &valor_venda);
+}
 
-    // OBS IMPORTANTE: Talvez seja bem interessante desacoplar essa parte final aqui pra reutilizar na hora de ler o arquivo
+void insercao_produto()
+{
+    /*
+        Cria um novo nó com os dados de nome_produto, lote, etc. e insere ordenadamente na lista
+    */
+    novo_no = malloc(sizeof(char) * 60);
 
-    no = malloc(sizeof(char) * 60);
+    memcpy(novo_no + 0, nome_produto, 16);
+    memcpy(novo_no + 16, &lote_produto, 4);
+    memcpy(novo_no + 20, &tipo_produto, 4);
+    memcpy(novo_no + 24, &data_validade, 4);
+    memcpy(novo_no + 28, fornecedor, 16);
+    memcpy(novo_no + 44, &quantidade_estoque, 4);
+    memcpy(novo_no + 48, &valor_compra, 4);
+    memcpy(novo_no + 52, &valor_venda, 4);
+    memset(novo_no + 56, 0, 4); // Inicia com NULL
 
-    memcpy(no + 0, nome_produto, 16);
-    memcpy(no + 16, &lote_produto, 4);
-    memcpy(no + 20, &tipo_produto, 4);
-    memcpy(no + 24, &data_validade, 4);
-    memcpy(no + 28, fornecedor, 16);
-    memcpy(no + 44, &quantidade_estoque, 4);
-    memcpy(no + 48, &valor_compra, 4);
-    memcpy(no + 52, &valor_venda, 4);
-    memset(no + 56, 0, 4); // Inicia com NULL
+    strcpy(nome_novo_produto, nome_produto);
 
-    // A fazer: percorrer a lista e realizar a inserção ordenada do nó nela
+    no_anterior = 0;
+    no = inicio_lista;
 
-    // Se ele já estiver, talvez printar um erro
+    while (no != 0)
+    {
+        carregar_dados_no();
 
-    printf("\nProduto inserido com sucesso!");
+        resultado_comparacao = strcmp(nome_produto, nome_novo_produto);
+
+        if (resultado_comparacao < 0)
+        {
+            // Achou o lugar
+            // A -> C
+            // A -> B -> C
+            if (no_anterior == 0)
+            {
+                memcpy(novo_no + 56, inicio_lista, 4);
+                inicio_lista = novo_no;
+            }
+            else
+            {
+                memcpy(novo_no + 56, no, 4);
+                memcpy(no_anterior + 56, novo_no, 4);
+            }      
+            printf("\nProduto inserido com sucesso!");      
+            return;
+        }
+        if (resultado_comparacao = 0)
+        {
+            printf("\nNome duplicado! Produto não pode ser inserido");
+            free(novo_no);
+            return;
+        }
+
+        no_anterior = no;
+        memcpy(no, no + 56, 4);
+    }
+
+    if (no_anterior == 0)
+    {
+        // Lista vazia
+        inicio_lista = novo_no;
+    }
+    else
+    {
+        memcpy(no_anterior + 56, novo_no, 4);
+    }
 }
 
 void remocao_produto_nome()
