@@ -1,0 +1,17 @@
+Leandro:
+-> gravar no disco
+-> ler no disco
+-> remoção de produto com validade vencida
+-> menu da main
+
+João:
+-> atualização do produto
+-> relatório de quantidade
+-> consulta financeira
+-> relatório ordenado pela data
+
+Murilo:
+-> consulta
+-> remoção produto por nome
+-> print nome
+-> relatório ordenado pelo nome
