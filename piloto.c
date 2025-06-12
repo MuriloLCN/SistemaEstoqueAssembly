@@ -72,11 +72,33 @@ char* inicio_lista;
 
 char* no_anterior;
 
-void print_no()
+void carregar_dados_no()
 {
-    // função que printa o no atual, pra ser reutilizada nas outras partes do código
+    /*
+    Carrega dos dados do ponteiro apontado por 'no' para as variáveis 'nome produto','lote produto', etc.
+    */
+    memcpy(nome_produto, no + 0, 16);
+    memcpy(&lote_produto, no + 16, 4);
+    memcpy(&tipo_produto, no + 20, 4);
+    memcpy(&data_validade, no + 24, 4);
+    memcpy(fornecedor, no + 28, 16);
+    memcpy(&quantidade_estoque, no + 44, 4);
+    memcpy(&valor_compra, no + 48, 4);
+    memcpy(&valor_venda, no + 52, 4);
+    memcpy(&ponteiro_prox, no + 56, 4);
 }
 
+void print_no()
+{
+    if (no == 0)
+    {
+        return;
+    }
+
+    carregar_dados_no();
+
+    // Printar dados carregados
+}
 void insercao_produto()
 {
     printf("\nInsira:\nNome do produto:\n>> ");
