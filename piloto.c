@@ -97,7 +97,10 @@ void print_no()
 
     carregar_dados_no();
 
-    // Printar dados carregados
+    // Buscar tipo de produto
+
+    char str_tipo_produto[16] = "teste placeholder";
+    printf("Produto: %s | Lote: %d, tipo: %s, data de validade: %d, fornecedor: %s, quantidade no estoque: %d, valor de compra: %f, valor de venda: %f",nome_produto,lote_produto,str_tipo_produto, data_validade, fornecedor, quantidade_estoque, valor_compra, valor_venda);
 }
 void insercao_produto()
 {
