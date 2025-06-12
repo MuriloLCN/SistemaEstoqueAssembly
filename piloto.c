@@ -58,6 +58,23 @@ Deslocamentos
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+// strings para mostrar o nome do programa no terminal
+const char banner1[] = "   _____ _     _                             _        ______     _                         \n";
+const char banner2[] = "  / ____(_)   | |                           | |      |  ____|   | |                        \n";
+const char banner3[] = " | (___  _ ___| |_ ___ _ __ ___   __ _    __| | ___  | |__   ___| |_ ___   __ _ _   _  ___ \n";
+const char banner4[] = "  \\___ \\| / __| __/ _ \\ '_ ` _ \\ / _` |  / _` |/ _ \\ |  __| / __| __/ _ \\ / _` | | | |/ _ \\ \n";
+const char banner5[] = "  ____) | \\__ \\ ||  __/ | | | | | (_| | | (_| |  __/ | |____\\__ \\ || (_) | (_| | |_| |  __/\n";
+const char banner6[] = " |_____/|_|___/\\__\\___|_| |_| |_|\\__,_|  \\__,_|\\___| |______|___/\\__\\___/ \\__, |\\__,_|\\___|\n";
+const char banner7[] = "                                                                             | |           \n";
+const char banner8[] = "                                                                             |_|           \n";
+
+// argumento passado para a função system()
+const char limpa_terminal[] = "clear";
+
+// formatos de argumentos para o scanf
+// ...
 
 // Variáveis de trabalho
 char nome_produto[16];
@@ -69,6 +86,7 @@ float valor_compra, valor_venda;
 int* ponteiro_prox;
 char* no;
 char* inicio_lista;
+int op_menu;
 
 char* no_anterior;
 
@@ -248,9 +266,64 @@ void relatorio_ordenado_quantidade_estoque()
     // mesma coisa que o anterior mas com base na quantidade estoque
 }
 
+
+void mostrar_banner()
+{
+    printf("%s", banner1);
+    printf("%s", banner2);
+    printf("%s", banner3);
+    printf("%s", banner4);
+    printf("%s", banner5);
+    printf("%s", banner6);
+    printf("%s", banner7);
+    printf("%s", banner8);
+}
+
+void recebe_ano()
+{
+    char resposta = 's';
+    do {
+        printf("\nDigite a data atual no formato yyyymmdd (Ex.: 20250612): ");
+        scanf("%d", &data_atual);
+        printf("Data atual: %d\n", data_atual);
+        printf("Confirma a data [%d]? (s/n) ", data_atual);
+        scanf(" %c", &resposta);
+    } while(resposta != 's');
+}
+
+void menu()
+{
+    printf("\n--> Data atual: %d", data_atual);
+    
+    printf("\n\nSelecione uma das funcionalidades abaixo: ");
+    printf("[0] - Inserção de produto\n");
+    printf("[1] - Remoção de produto\n");
+    printf("[2] - Atualização de produto\n");
+    printf("[3] - Consulta de produto\n");
+    printf("[4] - Consulta financeira\n");
+    printf("[5] - Gravação de registros\n");
+    printf("[6] - Carregamento de registros\n");
+    printf("[7] - Relatório de registros\n");
+
+    scanf("%d", &op_menu);
+    if (op_menu == 2)
+    {
+        printf("Deseja remover por \n");
+        printf("[0] - Nome\n");
+        printf("[1] - Data de validade\n");
+        scanf("%d", &op_menu);
+    }
+}
+
+
 int main()
 {
-    // Pedir data atual
+    recebe_ano();
+
+    system(limpa_terminal);
+    mostrar_banner();
+    menu();
+
 
     inicio_lista = NULL;
 }
