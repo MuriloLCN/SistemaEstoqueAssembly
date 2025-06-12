@@ -87,6 +87,7 @@ int* ponteiro_prox;
 char* no;
 char* inicio_lista;
 int op_menu;
+FILE *arquivo_ptr;
 
 char* no_anterior;
 char* novo_no;
@@ -292,21 +293,44 @@ void consulta_financeira()
 void gravar_no_disco()
 {
     // Arquivo binário
-    // Primeiros 4 bytes: inteiro com o número de arquivos
-    // A cada 60*n + 4 bytes: um registro
+    // Primeiros 4 bytes: inteiro com o número de registros
+    // A cada 56*n + 4 bytes: um registro
+    
+    // Sobrescrever o arquivo antigo, caso exista
 
-    // Apagar o arquivo antigo, caso exista
+    arquivo_ptr = fopen("dados.dat", "wb");
 
-    // fprintf (?) no arquivo de saída com o número de registros
+    fwrite(&tamanho_lista, sizeof(int), 1, arquivo_ptr);
 
-    // percorrer a lista até o fim, armazenando os registros como uma sequência de 60 bytes em binário
+    char *indice_atual_lista = inicio_lista;
+    for (int i = 0; i < tamanho_lista; i++)
+    {   
+        // só uma segurança a mais
+        if (indice_atual_lista == NULL)
+            break;
+            
+        // vamos escrever 56 bytes, descontando os últimos quatro bytes do nó que representa o ponteiro para o próximo elemento
+        fwrite(indice_atual_lista, 56, 1, arquivo_ptr);
+        /*
+            Esse passo merece uma explicação um pouco mais atenciosa. Primeiramente, temos que encontrar a posição no registro
+            que guarda o ponteiro para o próximo registro; tal posição é dada pela soma do endereço de memória do início do 
+            registro + o offset da posição onde o endereço do próximo nó está armazenado. Tenho esse deslocamento, temos que 
+            informar que o tipo de dado ali contido é um ponteiro para um ponteiro, por isso usa-se char**. Além disso, não
+            queremos esse endereço cru, mas sim o ponteiro no qual ele aponta. Devido a isso, ainda é necessário fazer a 
+            derreferenciação final.
+        */
+        // atualizando o índice atual com o próximo elemento
+        indice_atual_lista = *((char**) (indice_atual_lista + 56));
+    }
+
+    fclose(arquivo_ptr);
 }
 
 void ler_do_disco()
 {
     // Arquivo binário
-    // Primeiros 4 bytes: inteiro com o número de arquivos
-    // A cada 60*n + 4 bytes: um registro
+    // Primeiros 4 bytes: inteiro com o número de registros
+    // A cada 56*n + 4 bytes: um registro
 
     // Apagar a lista atual, caso exista
 
