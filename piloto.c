@@ -61,7 +61,7 @@ Deslocamentos
 #include <string.h>
 
 // strings para mostrar o nome do programa no terminal
-const char banner1[] = "   _____ _     _                             _        ______     _                         \n";
+const char banner1[] = "\n   _____ _     _                             _        ______     _                         \n";
 const char banner2[] = "  / ____(_)   | |                           | |      |  ____|   | |                        \n";
 const char banner3[] = " | (___  _ ___| |_ ___ _ __ ___   __ _    __| | ___  | |__   ___| |_ ___   __ _ _   _  ___ \n";
 const char banner4[] = "  \\___ \\| / __| __/ _ \\ '_ ` _ \\ / _` |  / _` |/ _ \\ |  __| / __| __/ _ \\ / _` | | | |/ _ \\ \n";
@@ -295,23 +295,135 @@ void menu()
 {
     printf("\n--> Data atual: %d", data_atual);
     
-    printf("\n\nSelecione uma das funcionalidades abaixo: ");
-    printf("[0] - Inserção de produto\n");
-    printf("[1] - Remoção de produto\n");
-    printf("[2] - Atualização de produto\n");
-    printf("[3] - Consulta de produto\n");
+    printf("\n\nSelecione uma das funcionalidades abaixo: \n");
+    printf("[0] - Insercao de produto\n");
+    printf("[1] - Remocao de produto\n");
+    printf("[2] - Atualizacao de produto\n");
+    printf("[3] - Consulta de produto por nome\n");
     printf("[4] - Consulta financeira\n");
-    printf("[5] - Gravação de registros\n");
+    printf("[5] - Gravacao de registros\n");
     printf("[6] - Carregamento de registros\n");
-    printf("[7] - Relatório de registros\n");
-
+    printf("[7] - Relatorio de registros\n");
     scanf("%d", &op_menu);
-    if (op_menu == 2)
+
+    if (op_menu == 0)
     {
-        printf("Deseja remover por \n");
+        // chama a função de inserção de produto
+    }
+
+    else if (op_menu == 1)
+    {
+        printf("\nDeseja remover por das opcoes abaixo? \n");
         printf("[0] - Nome\n");
         printf("[1] - Data de validade\n");
         scanf("%d", &op_menu);
+        
+        if (op_menu == 0)
+        {
+            // chama função de remoção pelo nome
+        }
+
+        else if (op_menu == 1)
+        {
+            // chama função de remoção por prazo de validade
+        }
+
+        else
+        {
+            printf("Opcao inválida!\n");
+            menu(); // Chama o menu novamente
+        }
+    }
+
+    else if (op_menu == 2)
+    {
+        // chama a função de atualização de produto
+    }
+    else if (op_menu == 3)
+    {
+        // chama a função de consulta de produto pelo nome
+    }
+
+    else if (op_menu == 4)
+    {
+        printf("\nDeseja consultar qual das opcoes abaixo?\n");
+        printf("[0] - Total de compra\n");
+        printf("[1] - Total de venda\n");
+        printf("[2] - Lucro total\n");
+        printf("[3] - Capital perdido\n");
+        scanf("%d", &op_menu);
+
+        if (op_menu == 0)
+        {
+            // chama a função de consulta de total de compra
+        }
+
+        else if (op_menu == 1)
+        {
+            // chama a função de consulta de total de venda
+        }
+
+        else if (op_menu == 2)
+        {
+            // chama a função de consulta de lucro total
+        }
+
+        else if (op_menu == 3)
+        {
+            // chama a função de consulta de capital perdido
+        }
+
+        else
+        {
+            printf("Opcao inválida!\n");
+            menu(); // Chama o menu novamente
+        }
+    }
+
+    else if (op_menu == 5)
+    {
+        // chama a função de gravação de registros
+    }
+
+    else if (op_menu == 6)
+    {
+        // chama a função de carregamento de registros
+    }
+
+    else if (op_menu == 7)
+    {
+        printf("\nDeseja a ordenaco por qual das opcoes abaixo?\n");
+        printf("[0] - Nome\n");
+        printf("[1] - Data de validade\n");
+        printf("[2] - Quantidade de estoque\n");
+        scanf("%d", &op_menu);
+
+        if (op_menu == 0)
+        {
+            // chama a função de relatório ordenado por nome
+        }
+
+        else if (op_menu == 1)
+        {
+            // chama a função de relatório ordenado por data de validade
+        }
+
+        else if (op_menu == 2)
+        {
+            // chama a função de relatório ordenado por quantidade de estoque
+        }
+        
+        else
+        {
+            printf("Opcao inválida!\n");
+            menu(); // Chama o menu novamente
+        }
+    }
+
+    else
+    {
+        printf("Opcao invalida!\n");
+        menu(); // Chama o menu novamente
     }
 }
 
