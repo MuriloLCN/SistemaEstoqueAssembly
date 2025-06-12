@@ -253,7 +253,7 @@ void gravar_no_disco()
         // só uma segurança a mais
         if (indice_atual_lista == NULL)
             break;
-            
+
         // vamos escrever 56 bytes, descontando os últimos quatro bytes do nó que representa o ponteiro para o próximo elemento
         fwrite(indice_atual_lista, 56, 1, arquivo_ptr);
         /*
@@ -277,11 +277,32 @@ void ler_do_disco()
     // Primeiros 4 bytes: inteiro com o número de registros
     // A cada 56*n + 4 bytes: um registro
 
-    // Apagar a lista atual, caso exista
+    char *prox, *deslocamento, *reg_atual_ptr;
+    arquivo_ptr = fopen("dados.dat", "rb");
+    
+    fread(&tamanho_lista, 4, 1, arquivo_ptr);
 
-    // fread o número de registros
+    // cada registro, na RAM, tem 60 bytes
+    reg_atual_ptr = malloc(60);
+    inicio_lista = reg_atual_ptr;
+    fread(reg_atual_ptr, 56, 1, arquivo_ptr);
 
-    // ir lendo os registros e usando a função de inserção para ir montando a nova lista
+    // começa do 1, porque já foi lido um registro
+    for (int i = 1; i < tamanho_lista; i++)
+    {
+        prox = malloc(60);
+        fread(prox, 56, 1, arquivo_ptr);    
+        deslocamento = reg_atual_ptr + 56;
+        // ligando os nós
+        *((void**) deslocamento) = prox;
+        reg_atual_ptr = prox;
+    }
+
+    deslocamento = reg_atual_ptr + 56;
+    // atterrando o últiimo registro
+    *((void**) deslocamento) = NULL;
+
+    fclose(arquivo_ptr);
 }
 
 void relatorio_ordenado_nome()
