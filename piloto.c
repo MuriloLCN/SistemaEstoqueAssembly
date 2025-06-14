@@ -88,9 +88,30 @@ char* no;
 char* inicio_lista;
 int op_menu;
 FILE *arquivo_ptr;
+char nome_aux[16];
 
 char* no_anterior;
 char* novo_no;
+
+/*
+    Produtos:
+    0: Higiene
+    1: Limpeza
+    2: Perecíveis
+    3: Não-Perecíveis
+    4: Bebidas
+    5: Padaria
+    6: Açougue
+    7: Congelados
+    8: Utilidades
+    9: Eletrodom.
+    10: Petshop
+    11: Infantis
+    12: Hortifruti
+    13: Papelaria
+    14: Doces
+    15: Outros
+*/
 
 // Inserção
 
@@ -115,17 +136,96 @@ void carregar_dados_no()
 
 void print_no()
 {
+    /*
+        Printa as informações do nó atualmente armazenado em 'no' na tela
+    */
     if (no == 0)
     {
+        printf("\n[Debug] Tentativa de imprimir um nó inválido realizada");
         return;
     }
 
     carregar_dados_no();
 
-    // Buscar tipo de produto
+    printf("Produto: %s | Lote: %d, data de validade: %d, fornecedor: %s, quantidade no estoque: %d, valor de compra: %f, valor de venda: %f, tipo: ",nome_produto,lote_produto,data_validade, fornecedor, quantidade_estoque, valor_compra, valor_venda);
+    switch (tipo_produto)
+    {
+        case 0:
+            printf("Higiene");
+            break;
+        case 1:
+            printf("Limpeza");
+            break;
+        case 2:
+            printf("Perecíveis");
+            break;
+        case 3:
+            printf("Não-Perecíveis");
+            break;
+        case 4:
+            printf("Bebidas");
+            break;
+        case 5:
+            printf("Padaria");
+            break;
+        case 6:
+            printf("Açougue");
+            break;
+        case 7:
+            printf("Congelados");
+            break;
+        case 8:
+            printf("Utilidades");
+            break;
+        case 9:
+            printf("Eletrodom.");
+            break;
+        case 10:
+            printf("Petshop");
+            break;
+        case 11:
+            printf("Infantis");
+            break;
+        case 12:
+            printf("Hortifruti");
+            break;
+        case 13:
+            printf("Papelaria");
+            break;
+        case 14:
+            printf("Doces");
+            break;
+        case 15:
+            printf("Outros");
+            break;
+    }
+}
 
-    char str_tipo_produto[16] = "teste placehol";
-    printf("Produto: %s | Lote: %d, tipo: %s, data de validade: %d, fornecedor: %s, quantidade no estoque: %d, valor de compra: %f, valor de venda: %f",nome_produto,lote_produto,str_tipo_produto, data_validade, fornecedor, quantidade_estoque, valor_compra, valor_venda);
+void encontrar_produto_nome()
+{
+    /*
+        Percorre a lista até encontrar um produto com o mesmo nome do que está na variável nome_aux
+        Como resultado, o ponteiro do produto estará em no, caso não seja encotrado no será igual a 0
+        O elemento anterior é armazenado em no_anterior
+    */
+
+    no_anterior = 0;
+    no = inicio_lista;
+
+    while (no != 0)
+    {
+        carregar_dados_no();
+
+        resultado_comparacao = strcmp(nome_produto, nome_aux);
+
+        if (resultado_comparacao == 0)
+        {
+            break;
+        }
+
+        no_anterior = no;
+        memcpy(no, no + 56, 4);
+    }
 }
 
 void pegar_dados_produto_input()
@@ -136,8 +236,7 @@ void pegar_dados_produto_input()
     printf("\nLote:\n>> ");
     scanf("%d", &lote_produto);
 
-    printf("\nTipo:\n>> ");
-    // OBS: Aqui tem que printar também a tabela com os tipos do produtos (1-Higiene, 2-Limpeza, etc.)
+    printf("\nTipo:\n0: Higiene\n1: Limpeza\n2: Perecíveis\n3: Não-Perecíveis\n4: Bebidas\n5: Padaria\n6: Açougue\n7: Congelados\n8: Utilidades\n9: Eletrodom.\n10: Petshop\n11: Infantis\n12: Hortifruti\n13: Papelaria\n14: Doces\n15: Outros\n>> ");
     scanf("%d", &tipo_produto);
 
     printf("\nData validade (YYYYMMDD):\n>> ");
@@ -202,7 +301,7 @@ void insercao_produto()
             printf("\nProduto inserido com sucesso!");      
             return;
         }
-        if (resultado_comparacao = 0)
+        if (resultado_comparacao == 0)
         {
             printf("\nNome duplicado! Produto não pode ser inserido");
             free(novo_no);
@@ -227,17 +326,30 @@ void insercao_produto()
 void remocao_produto_nome()
 {
     printf("\nInsira o nome do produto a ser removido:\n >> ");
-    scanf("%s", nome_produto);
+    scanf("%s", nome_aux);
 
-    no_anterior = NULL;
-    no = inicio_lista;
-
-    // Percorrer a lista até achar o produto
-
-    // Se achou, colocar o ponteiro do nó anterior como o ponteiro do nó a ser removido, então dar free no nó
-
-    printf("\nProduto removido com sucesso!");
-    printf("\nProduto não encontrado");
+    encontrar_produto_nome();
+    
+    if (no == 0)
+    {
+        printf("\nProduto não encontrado");
+    }
+    else
+    {
+        if (no_anterior == 0)
+        {
+            // Primeiro elemento
+            memcpy(inicio_lista, no + 56, 4);
+            free(no);
+        }
+        else
+        {
+            // N-Ésimo elemento
+            memcpy(no_anterior + 56, no + 56, 4);
+            free(no);
+        }
+        printf("\nProduto removido com sucesso!");
+    }
 }
 
 void remocao_produto_validade()
@@ -273,14 +385,18 @@ void atualizacao_produto()
 void consulta()
 {
     printf("\nInsira o nome do produto a ser buscado:\n>> ");
-    scanf("%s", nome_produto);
+    scanf("%s", nome_aux);
 
-    // Percorrer a lista até encontrar o produto com o nome
+    encontrar_produto_nome();
 
-    // Talvez dê pra reutilizar essa função nas outras, se a gente definir bem como fica o estado das variáveis dps de rodar
-    
-    printf("\nProduto não encontrado");
-    printf("\nProduto: ...");
+    if (no == 0)
+    {
+        printf("\nProduto não encontrado");
+    }
+    else
+    {
+        print_no();
+    }
 }
 
 void consulta_financeira()
@@ -288,7 +404,6 @@ void consulta_financeira()
     // Talvez compense ter apenas um laço que some o total de compra, total de venda, lucro total e capital perdido
     // Aí no final só faz o display do que a pessoa escolher, já que ele pede a escolha
 }
-
 
 void gravar_no_disco()
 {
@@ -363,6 +478,14 @@ void ler_do_disco()
 void relatorio_ordenado_nome()
 {
     // Apenas ir printando por ordem da lista :D
+    no = inicio_lista;
+    
+    printf("\n-----------------------\nProdutos ordenados por nome\n-----------------------");
+    while (no != 0)
+    {
+        print_no();
+        memcpy(no, no + 56, 4); // no = no.prox
+    }
 }
 
 void relatorio_ordenado_data_validade()
@@ -390,7 +513,6 @@ void relatorio_ordenado_quantidade_estoque()
 {
     // mesma coisa que o anterior mas com base na quantidade estoque
 }
-
 
 void mostrar_banner()
 {
@@ -551,7 +673,6 @@ void menu()
         menu(); // Chama o menu novamente
     }
 }
-
 
 int main()
 {
