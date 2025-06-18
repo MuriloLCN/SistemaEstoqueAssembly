@@ -83,7 +83,7 @@ int data_atual;
 int tamanho_lista = 0;
 int lote_produto, tipo_produto, data_validade, quantidade_estoque;
 float valor_compra, valor_venda;
-int* ponteiro_prox;
+char* ponteiro_prox;
 char* no;
 char* inicio_lista;
 int op_menu;
@@ -354,9 +354,48 @@ void remocao_produto_nome()
 
 void remocao_produto_validade()
 {
-    printf("\nRemovendo produtos fora de validade...");
+    /*
+        Percorre a lista de registros comparando a data de validade do produto com a data atual. Caso a data de validade
+        do produto seja menor que a data atual, este item é removido da lista. Nessa funcionalidade, nenhum dado 
+        adicional é pedido ao usuário, as comparações são feitas com base na data atual do sistema já inserida pelo usuário
+    */
 
-    // Percorrer a lista e ir removendo que nem a função de cima
+    printf("\nRemovendo produtos fora de validade [%d] ...", data_atual);
+
+    no_anterior = NULL;
+    no = inicio_lista;
+
+    while (no != NULL)
+    {
+        carregar_dados_no();
+
+        resultado_comparacao = data_validade - data_atual;
+
+        if (resultado_comparacao < 0) // se a data de validade for estritamente menor que a data atual
+        {
+            if (no_anterior == NULL) // se o primeiro elemento é quem deve ser removido
+            {
+                // memcpy(inicio_lista, no + 56, 4); 
+                inicio_lista = ponteiro_prox; // o segundo elemento da lista se torna o primeiro
+            }
+
+            else // se o elemento a ser removido não é o primeiro
+            {
+                memcpy(no_anterior + 56, no + 56, 4);
+                // memcpy(no, no_anterior + 56, 4); // avançando na lista
+            }
+
+            free(no);
+        }
+
+        else 
+        {
+            no_anterior = no;
+            // memcpy(no, no + 56, 4); // avançando na lista
+        }
+
+        no = ponteiro_prox; // avançando a lista
+    }
 }
 
 void atualizacao_produto()
