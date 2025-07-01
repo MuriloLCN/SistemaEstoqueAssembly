@@ -45,7 +45,7 @@
     txtRelValidade:     .asciz  "[1] - Data de validade\n"
     txtRelEstoque:      .asciz  "[2] - Quantidade de estoque\n"
 
-    txtOpcInvalida:     .asciz  "Opcao invalida!\n"
+    txtOpcInvalida:     .asciz  "\n\n****** Opcao invalida! ******\n"
 
     # strings da função que recebe o ano 
     txtDigiteData:      .asciz  "\nDigite a data atual no formato yyyymmdd (Ex.: 20250612): "
@@ -96,7 +96,9 @@ main:
 
     call    recebe_ano
 
-    jmp fim
+    call    menu
+
+    jmp     fim
 
 mostra_banner:
     pushl   $banner1
@@ -151,8 +153,121 @@ recebe_ano:
     RET
 
 menu:
+    pushl   data_atual
+    pushl   $txtMostraData
+    call    printf
+
+    pushl   $txtFuncionalidades
+    call    printf
+    pushl   $txtFunc0
+    call    printf
+    pushl   $txtFunc1
+    call    printf
+    pushl   $txtFunc2
+    call    printf
+    pushl   $txtFunc3
+    call    printf
+    pushl   $txtFunc4
+    call    printf
+    pushl   $txtFunc5
+    call    printf
+    pushl   $txtFunc6
+    call    printf
+    pushl   $txtFunc7
+    call    printf
+
+    pushl   $op_menu
+    pushl   $formatoINT
+    call    scanf
+
+    addl    $52, %esp       # desempilhando 13 pushl's
+
+    _if_insercao:
+        movl    $0, %eax
+        cmpl    op_menu, %eax       # eax - op_menu
+        jne     _if_remocao         # se os valores forem diferentes, passa para a verificação da remoção
+        # senão, chama a função de inserção do produto
+        RET
+
+    _if_remocao:
+        movl    $1, %eax
+        cmpl    op_menu, %eax       # eax - op_menu
+        jne     _if_atualizacao     # se os valores forem diferentes, passa para a verificação da atualização
+        # continua com a remocao
+        pushl   $txtOpcRemocao      # apresentando as opções de remoção
+        call    printf
+
+        pushl   $op_menu
+        pushl   $formatoINT
+        call    scanf
+
+        addl    $12, %esp           # desempilhando pushl's
+
+        _if_remocao_nome:
+            movl    $0, %eax
+            cmpl    op_menu, %eax
+            jne     _if_remocao_validade    # verifica se a remoção por nome foi escolhida
+            # chama função de remoção pelo nome
+            RET
+        
+        _if_remocao_validade:
+            movl    $1, %eax
+            cmpl    op_menu, %eax
+            jne     _if_op_invalida    # se a opção escolhida é inválida
+            # chama função de remoção por data de validade
+            RET
     
-    RET
+    _if_atualizacao:
+        movl    $2, %eax
+        cmpl    op_menu, %eax       # eax - op_menu
+        jne     _if_consulta_nome   # se os valores forem diferentes, passa para a verificação se vai consultar produto por nome
+        # chama função de atualização do protudo
+        RET
+
+    _if_consulta_nome:
+        movl    $3, %eax
+        cmpl    op_menu, %eax       # eax - op_menu
+        jne     _if_consulta        # se os valores forem diferentes, passa para a escolha da consulta
+        # chama função de consultar produto pelo nome
+        RET
+    
+    _if_consulta:
+        movl    $4, %eax
+        cmpl    op_menu, %eax       # eax - op_menu
+        jne     _if_gravacao_reg    # se os valores forem diferentes, passa para a gravação dos registros no disco
+        # conntinua com a escolha da consulta
+
+        pushl   $txtOpcFinanceira   
+        call    printf
+
+        RET
+    
+    _if_gravacao_reg:
+        movl    $5, %eax
+        cmpl    op_menu, %eax       # eax - op_menu
+        jne     _if_carrega_reg     # se os valores forem diferentes, passa para o carregamento dos registro vindos do disco
+        # chama função para gravar os registros no disco
+        RET
+
+    _if_carrega_reg:
+        movl    $6, %eax
+        cmpl    op_menu, %eax       # eax - op_menu
+        jne     _if_relatorio       # se os valores forem diferentes, passa para a escolha do relatório
+        # chama função para carregar os registros do disco
+        RET
+    
+    _if_relatorio:
+        movl    $7, %eax
+        cmpl    op_menu, %eax       # eax - op_menu
+        jne     _if_op_invalida     # se os valores forem diferentes, passa para a mensagem de opção inválida
+        # continua com a escolha do relatório
+        RET
+    
+    _if_op_invalida:
+        pushl   $txtOpcInvalida
+        call    printf
+        addl    $4, %esp
+        jmp     menu
 
 fim:
     pushl   $0
