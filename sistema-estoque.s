@@ -51,6 +51,7 @@
     txtDigiteData:      .asciz  "\nDigite a data atual no formato yyyymmdd (Ex.: 20250612): "
     txtMostraData:      .asciz  "Data atual: %d\n"
     txtConfirmaData:    .asciz  "Confirma a data [%d]? (s/n) "
+    respostaChar:       .char   's'
 
     # strings de formatação
     formatoSTR:     .asciz  "%s"
@@ -115,6 +116,28 @@ mostra_banner:
     RET
 
 recebe_ano:
+
+    pushl   $txtDigiteData
+    call    printf
+    
+    pushl   $data_atual
+    pushl   $formatoINT
+    call    scanf
+
+    pushl   data_atual
+    pushl   $txtDataAtual
+    call    printf
+
+    pushl   $txtConfirmaData,
+    call    printf
+
+    pushl   $respostaChar
+    pushl   $formatoCHAR
+    call    scanf
+
+    movl    $115, %eax          # 115 é o valor de s em ascii
+    cmpl    respostaChar, %eax    
+    jne     recebe_ano
 
     RET
 
