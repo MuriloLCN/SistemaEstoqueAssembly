@@ -18,6 +18,40 @@
     banner7:        .asciz  "                                                                             | |           \n";
     banner8:        .asciz  "                                                                             |_|           \n";
 
+    # strings do menu
+    txtDataAtual:       .asciz  "\n--> Data atual: %d"
+    txtFuncionalidades: .asciz  "\n\nSelecione uma das funcionalidades abaixo: \n"
+    txtFunc0:           .asciz  "[0] - Insercao de produto\n"
+    txtFunc1:           .asciz  "[1] - Remocao de produto\n"
+    txtFunc2:           .asciz  "[2] - Atualizacao de produto\n"
+    txtFunc3:           .asciz  "[3] - Consulta de produto por nome\n"
+    txtFunc4:           .asciz  "[4] - Consulta financeira\n"
+    txtFunc5:           .asciz  "[5] - Gravacao de registros\n"
+    txtFunc6:           .asciz  "[6] - Carregamento de registros\n"
+    txtFunc7:           .asciz  "[7] - Relatorio de registros\n"
+
+    txtOpcRemocao:      .asciz  "\nDeseja remover por das opcoes abaixo? \n"
+    txtRemNome:         .asciz  "[0] - Nome\n"
+    txtRemValidade:     .asciz  "[1] - Data de validade\n"
+
+    txtOpcFinanceira:   .asciz  "\nDeseja consultar qual das opcoes abaixo?\n"
+    txtFinCompra:       .asciz  "[0] - Total de compra\n"
+    txtFinVenda:        .asciz  "[1] - Total de venda\n"
+    txtFinLucro:        .asciz  "[2] - Lucro total\n"
+    txtFinPerda:        .asciz  "[3] - Capital perdido\n"
+
+    txtOpcRelatorio:    .asciz  "\nDeseja a ordenaco por qual das opcoes abaixo?\n"
+    txtRelNome:         .asciz  "[0] - Nome\n"
+    txtRelValidade:     .asciz  "[1] - Data de validade\n"
+    txtRelEstoque:      .asciz  "[2] - Quantidade de estoque\n"
+
+    txtOpcInvalida:     .asciz  "Opcao invalida!\n"
+
+    # strings da função que recebe o ano 
+    txtDigiteData:      .asciz  "\nDigite a data atual no formato yyyymmdd (Ex.: 20250612): "
+    txtMostraData:      .asciz  "Data atual: %d\n"
+    txtConfirmaData:    .asciz  "Confirma a data [%d]? (s/n) "
+
     # strings de formatação
     formatoSTR:     .asciz  "%s"
     formatoINT:     .asciz  "%d"
@@ -79,7 +113,15 @@ mostra_banner:
 
     addl    $32, %esp           # desempilhando os endereços das 8 strings do banner
     RET
+
+recebe_ano:
+
+    RET
+
+menu:
     
+    RET
+
 fim:
     pushl   $0
     call    exit
