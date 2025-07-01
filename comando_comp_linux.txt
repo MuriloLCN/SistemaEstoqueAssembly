@@ -1,0 +1,1 @@
+gcc -c -m32 sistema-estoque.s -o sistema-estoque.o && gcc -m32 sistema-estoque.o -o sistema-estoque && ./sistema-estoque
