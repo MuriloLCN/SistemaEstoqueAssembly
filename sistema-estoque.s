@@ -50,8 +50,8 @@
     # strings da função que recebe o ano 
     txtDigiteData:      .asciz  "\nDigite a data atual no formato yyyymmdd (Ex.: 20250612): "
     txtMostraData:      .asciz  "Data atual: %d\n"
-    txtConfirmaData:    .asciz  "Confirma a data [%d]? (s/n) "
-    respostaChar:       .char   's'
+    txtConfirmaData:    .asciz  "\nConfirma a data [%d]? (s/n) "
+    respostaChar:       .byte   's'
 
     # strings de formatação
     formatoSTR:     .asciz  "%s"
@@ -83,6 +83,8 @@
     .lcomm  inicio_lista,   4
     .lcomm  arquivo_ptr,    4
 
+    .lcomm  lixo,           4
+
 .section .text
 .globl main
 
@@ -90,7 +92,9 @@ main:
     pushl   $limpaTerminal      # limpando o terminal para a execução do programa
     call    system          
 
-    call mostra_banner
+    call    mostra_banner
+
+    call    recebe_ano
 
     jmp fim
 
@@ -116,7 +120,6 @@ mostra_banner:
     RET
 
 recebe_ano:
-
     pushl   $txtDigiteData
     call    printf
     
@@ -128,16 +131,22 @@ recebe_ano:
     pushl   $txtDataAtual
     call    printf
 
-    pushl   $txtConfirmaData,
+    pushl   $lixo               # ignorando o \n que resta no buffer
+    call    getchar
+
+    pushl   data_atual
+    pushl   $txtConfirmaData
     call    printf
 
     pushl   $respostaChar
     pushl   $formatoCHAR
     call    scanf
 
-    movl    $115, %eax          # 115 é o valor de s em ascii
-    cmpl    respostaChar, %eax    
-    jne     recebe_ano
+    addl    $40, %esp           # desempilhando 10 pushs
+
+    movb    $115, %al           # 115 é o valor de s em ascii
+    cmpb    respostaChar, %al   # compara o caractere lido com o valor 115
+    jne     recebe_ano          # se a resposta não for 's', deve-se perguntar novamente ao usuário
 
     RET
 
