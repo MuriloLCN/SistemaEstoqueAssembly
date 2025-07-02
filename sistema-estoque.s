@@ -45,7 +45,7 @@
     txtRelValidade:     .asciz  "[1] - Data de validade\n"
     txtRelEstoque:      .asciz  "[2] - Quantidade de estoque\n"
 
-    txtOpcInvalida:     .asciz  "\n\n****** Opcao invalida! ******\n"
+    txtOpcInvalida:     .asciz  "\n****** Opcao invalida! ******\n\n"
 
     # strings da função que recebe o ano 
     txtDigiteData:      .asciz  "\nDigite a data atual no formato yyyymmdd (Ex.: 20250612): "
@@ -196,12 +196,16 @@ menu:
         # continua com a remocao
         pushl   $txtOpcRemocao      # apresentando as opções de remoção
         call    printf
+        pushl   $txtRemNome
+        call    printf
+        pushl   $txtRemValidade
+        call    printf
 
         pushl   $op_menu
         pushl   $formatoINT
         call    scanf
 
-        addl    $12, %esp           # desempilhando pushl's
+        addl    $20, %esp           # desempilhando 5 pushl's
 
         _if_remocao_nome:
             movl    $0, %eax
@@ -237,10 +241,50 @@ menu:
         jne     _if_gravacao_reg    # se os valores forem diferentes, passa para a gravação dos registros no disco
         # conntinua com a escolha da consulta
 
-        pushl   $txtOpcFinanceira   
+        pushl   $txtOpcFinanceira   # mostrando as opções de consulta financeira oferecidas pelo sistema
+        call    printf
+        pushl   $txtFinCompra
+        call    printf
+        pushl   $txtFinVenda
+        call    printf
+        pushl   $txtFinLucro
+        call    printf
+        pushl   $txtFinPerda
         call    printf
 
-        RET
+        pushl   $op_menu            # pegando do usuário a opção escolhida 
+        pushl   $formatoINT
+        call    scanf
+
+        addl    $28, %esp           # desempilhando 7 pushl's
+        
+        _if_fin_compra:
+            movl    $0, %eax
+            cmpl    op_menu, %eax
+            jne     _if_fin_venda   # se os valores forem diferentes, passa para a verificação se o usuário escolheu o total de venda
+            # chama a função de consulta do total de compras
+            RET
+        
+        _if_fin_venda:
+            movl    $1, %eax
+            cmpl    op_menu, %eax            
+            jne     _if_fin_lucro   # se os valores forem diferentes, passa para a verificação se o usuário escolheu o total de lucro
+            #  chama a função de consulta do total de vendas
+            RET
+        
+        _if_fin_lucro:
+            movl    $2, %eax
+            cmpl    op_menu, %eax            
+            jne     _if_fin_perdido   # se os valores forem diferentes, passa para a verificação se o usuário escolheu  o capital perdido
+            # chama a função da consulta de lucro total
+            RET
+        
+        _if_fin_perdido:
+            movl    $3, %eax
+            cmpl    op_menu, %eax            
+            jne     _if_op_invalida   # se o valor digitado pelo usuário não corresponder a nenhuma consulta financeira
+            # chama a função de consulta de capital perdido
+            RET
     
     _if_gravacao_reg:
         movl    $5, %eax
@@ -261,8 +305,42 @@ menu:
         cmpl    op_menu, %eax       # eax - op_menu
         jne     _if_op_invalida     # se os valores forem diferentes, passa para a mensagem de opção inválida
         # continua com a escolha do relatório
-        RET
-    
+
+        pushl   $txtOpcRelatorio    # mostrando as opções de ordenação de relatório
+        call    printf
+        pushl   $txtRelNome
+        call    printf
+        pushl   $txtRelValidade
+        call    printf
+        pushl   $txtRelEstoque
+        call    printf
+
+        pushl   $op_menu            # pegando do usuário a opção de ordenação do relatório
+        pushl   $formatoINT
+        call    scanf
+
+        addl    $24, %esp           # desempilhando 6 pushl's
+
+        _if_rel_nome:
+            movl    $0, %eax
+            cmpl    op_menu, %eax       
+            jne     _if_rel_validade        # se os valores forem diferentes, passa para verificação se o usuário optou pela ordenação por data de validade
+            # chama a função para mostrar o relatório ordenado pelos nomes
+            RET
+        
+        _if_rel_validade:
+            movl    $1, %eax
+            cmpl    op_menu, %eax       
+            jne     _if_rel_estoque         # se os valores forem diferentes, passa para verificação se o usuário optou pela ordenação pela quantidade de estoque
+            # chama a função para mostrar o relatório ordenado pelas datas de validade
+            RET
+        
+        _if_rel_estoque:
+            movl    $2, %eax
+            cmpl    op_menu, %eax       
+            jne     _if_op_invalida         # se os valores forem diferentes, nenhuma opção válida foi escolhida
+            # chama a função para mostrar o relatório ordenado pela quantidade de estoque
+
     _if_op_invalida:
         pushl   $txtOpcInvalida
         call    printf
