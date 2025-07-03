@@ -29,6 +29,7 @@
     txtFunc5:           .asciz  "[5] - Gravacao de registros\n"
     txtFunc6:           .asciz  "[6] - Carregamento de registros\n"
     txtFunc7:           .asciz  "[7] - Relatorio de registros\n"
+    txtSairMenu:        .asciz  "[8] - Sair\n"
 
     txtOpcRemocao:      .asciz  "\nDeseja remover por das opcoes abaixo? \n"
     txtRemNome:         .asciz  "[0] - Nome\n"
@@ -175,19 +176,21 @@ menu:
     call    printf
     pushl   $txtFunc7
     call    printf
+    pushl   $txtSairMenu
+    call    printf
 
     pushl   $op_menu
     pushl   $formatoINT
     call    scanf
 
-    addl    $52, %esp       # desempilhando 13 pushl's
+    addl    $56, %esp       # desempilhando 14 pushl's
 
     _if_insercao:
         movl    $0, %eax
         cmpl    op_menu, %eax       # eax - op_menu
         jne     _if_remocao         # se os valores forem diferentes, passa para a verificação da remoção
         # senão, chama a função de inserção do produto
-        RET
+        jmp     menu
 
     _if_remocao:
         movl    $1, %eax
@@ -212,28 +215,28 @@ menu:
             cmpl    op_menu, %eax
             jne     _if_remocao_validade    # verifica se a remoção por nome foi escolhida
             # chama função de remoção pelo nome
-            RET
+            jmp     menu
         
         _if_remocao_validade:
             movl    $1, %eax
             cmpl    op_menu, %eax
             jne     _if_op_invalida    # se a opção escolhida é inválida
             # chama função de remoção por data de validade
-            RET
+            jmp     menu
     
     _if_atualizacao:
         movl    $2, %eax
         cmpl    op_menu, %eax       # eax - op_menu
         jne     _if_consulta_nome   # se os valores forem diferentes, passa para a verificação se vai consultar produto por nome
         # chama função de atualização do protudo
-        RET
+        jmp     menu
 
     _if_consulta_nome:
         movl    $3, %eax
         cmpl    op_menu, %eax       # eax - op_menu
         jne     _if_consulta        # se os valores forem diferentes, passa para a escolha da consulta
         # chama função de consultar produto pelo nome
-        RET
+        jmp     menu
     
     _if_consulta:
         movl    $4, %eax
@@ -263,47 +266,47 @@ menu:
             cmpl    op_menu, %eax
             jne     _if_fin_venda   # se os valores forem diferentes, passa para a verificação se o usuário escolheu o total de venda
             # chama a função de consulta do total de compras
-            RET
+            jmp     menu
         
         _if_fin_venda:
             movl    $1, %eax
             cmpl    op_menu, %eax            
             jne     _if_fin_lucro   # se os valores forem diferentes, passa para a verificação se o usuário escolheu o total de lucro
             #  chama a função de consulta do total de vendas
-            RET
+            jmp     menu
         
         _if_fin_lucro:
             movl    $2, %eax
             cmpl    op_menu, %eax            
             jne     _if_fin_perdido   # se os valores forem diferentes, passa para a verificação se o usuário escolheu  o capital perdido
             # chama a função da consulta de lucro total
-            RET
+            jmp     menu
         
         _if_fin_perdido:
             movl    $3, %eax
             cmpl    op_menu, %eax            
             jne     _if_op_invalida   # se o valor digitado pelo usuário não corresponder a nenhuma consulta financeira
             # chama a função de consulta de capital perdido
-            RET
+            jmp     menu
     
     _if_gravacao_reg:
         movl    $5, %eax
         cmpl    op_menu, %eax       # eax - op_menu
         jne     _if_carrega_reg     # se os valores forem diferentes, passa para o carregamento dos registro vindos do disco
         # chama função para gravar os registros no disco
-        RET
+        jmp     menu
 
     _if_carrega_reg:
         movl    $6, %eax
         cmpl    op_menu, %eax       # eax - op_menu
         jne     _if_relatorio       # se os valores forem diferentes, passa para a escolha do relatório
         # chama função para carregar os registros do disco
-        RET
+        jmp     menu
     
     _if_relatorio:
         movl    $7, %eax
         cmpl    op_menu, %eax       # eax - op_menu
-        jne     _if_op_invalida     # se os valores forem diferentes, passa para a mensagem de opção inválida
+        jne     _if_sair            # se os valores forem diferentes, passa para verificação se o usuário deseja sair do menu
         # continua com a escolha do relatório
 
         pushl   $txtOpcRelatorio    # mostrando as opções de ordenação de relatório
@@ -326,20 +329,26 @@ menu:
             cmpl    op_menu, %eax       
             jne     _if_rel_validade        # se os valores forem diferentes, passa para verificação se o usuário optou pela ordenação por data de validade
             # chama a função para mostrar o relatório ordenado pelos nomes
-            RET
+            jmp     menu
         
         _if_rel_validade:
             movl    $1, %eax
             cmpl    op_menu, %eax       
             jne     _if_rel_estoque         # se os valores forem diferentes, passa para verificação se o usuário optou pela ordenação pela quantidade de estoque
             # chama a função para mostrar o relatório ordenado pelas datas de validade
-            RET
+            jmp     menu
         
         _if_rel_estoque:
             movl    $2, %eax
             cmpl    op_menu, %eax       
             jne     _if_op_invalida         # se os valores forem diferentes, nenhuma opção válida foi escolhida
             # chama a função para mostrar o relatório ordenado pela quantidade de estoque
+
+    _if_sair:
+        movl    $8, %eax
+        cmpl    op_menu, %eax
+        jne     _if_op_invalida     # se os valores forem diferentes, passa para a mensagem de opção inválida
+        RET                         # retornando para a função main
 
     _if_op_invalida:
         pushl   $txtOpcInvalida

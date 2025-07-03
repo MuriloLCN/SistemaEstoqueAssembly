@@ -611,6 +611,7 @@ void menu()
     printf("[5] - Gravacao de registros\n");
     printf("[6] - Carregamento de registros\n");
     printf("[7] - Relatorio de registros\n");
+    printf("[8] - Sair\n");
     scanf("%d", &op_menu);
 
     if (op_menu == 0)
@@ -726,6 +727,11 @@ void menu()
             printf("Opcao inválida!\n");
             menu(); // Chama o menu novamente
         }
+    }
+
+    else if (op_menu == 8)
+    {
+        return;
     }
 
     else
