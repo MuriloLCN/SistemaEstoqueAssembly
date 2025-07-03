@@ -412,6 +412,81 @@ gravar_no_disco:
         call    fclose
         addl    $4, %esp
         RET
+    
+ler_do_disco:
+    #   Para não criar mais variáveis, tentei reutilizar o que já estava declarado:
+    #   reg_atual_ptr -> no | deslocamento -> %eax | prox -> ponteiro_prox
+
+    # abrindo o arquivo com a função fopen
+    pushl   $modoAberturaArq    # empilhando "wb"
+    pushl   $nomeArquivo        # empilhando "dados.dat"
+    call    fopen
+
+    movl    %eax, arquivo_ptr   # salvando o ponteiro FILE* em arquivo_ptr
+
+    # lendo o tamanho da lista presente no arquivo
+    pushl   %eax                # empilhando o ponteiro FILE*
+    pushl   $1                  # empilhando o numero de blocos a serem escritos
+    pushl   $4                  # empilhando o tamanho de um inteiro (4 bytes)
+    pushl   $tamanho_lista      # empilhando o endereço do tamanho da lista
+    call    fread
+
+    addl    $24, %esp           # desempilhando os 6 pushl's da leitura inicial
+    cmpl    $0, tamanho_lista   # verificando se a lista está vazia
+    je      _fim_ler_do_disco
+
+    pushl   $60                 # tamanho em bytes de um registro
+    call    malloc
+    movl    %eax, no            # salvando o ponteiro pro espaço alocado para o registro em no
+    movl    %eax, inicio_lista  # salvando também o início da lista
+    
+    # lendo o primeiro registro presente no arquivo
+    pushl   %eax                # empilhando o ponteiro FILE*
+    pushl   $1                  # empilhando o numero de blocos a serem escritos
+    pushl   $56                 # empilhando o tamanho de um registro sem o campo do ponteiro próximo (56 bytes)
+    pushl   $no                 # empilhando o endereço do nó que alocamos
+
+    addl    $20, %esp           # desempilhando os últimos 5 pushl's
+
+    movl    $1, %ecx
+    _loop_ler_do_disco:
+        cmpl    tamanho_lista, %ecx
+        je      _fim_ler_do_disco
+
+        pushl   %ecx                # apenas salvando o ecx
+
+        pushl   $60                 # tamanho em bytes de um registro
+        call    malloc
+        movl    %eax, ponteiro_prox 
+
+        pushl   arquivo_ptr         # empilhando o ponteiro FILE*
+        pushl   $1                  # empilhando o numero de blocos a serem escritos
+        pushl   $56                 # empilhando o tamanho de um registro sem o campo do ponteiro próximo (56 bytes)
+        pushl   $ponteiro_prox      # empilhando o endereço do nó que alocamos
+        call    fread
+
+        addl    $20, %esp           # desempilhando os últimos 5 pushl's
+        popl    %ecx                # recuperando o ecx
+        incl    %ecx                # incrementando o contador
+        
+        # ligando os nós
+        movl    no, %eax
+        addl    $56, %eax
+        movl    ponteiro_prox, (%eax)
+        movl    ponteiro_prox, %ebx
+        movl    %ebx, no
+
+    _fim_ler_do_disco:
+        # terminando a lista
+        movl    no, %eax
+        addl    $56, %eax
+        movl    $0, (%eax)          # aterrando o último ponteiro para o próximo elemento
+
+        pushl   arquivo_ptr
+        call    fclose
+        addl    $4, %esp
+
+        RET
 
 fim:
     pushl   $0
