@@ -261,7 +261,6 @@ void insercao_produto()
         Cria um novo nó com os dados de nome_produto, lote, etc. e insere ordenadamente na lista
     */
 
-    printf("Chegou aqui 1");
     novo_no = malloc(sizeof(char) * 60);
     memcpy(novo_no + 0, nome_produto, 16);
     memcpy(novo_no + 16, &lote_produto, 4);
@@ -272,12 +271,9 @@ void insercao_produto()
     memcpy(novo_no + 48, &valor_compra, 4);
     memcpy(novo_no + 52, &valor_venda, 4);
     memset(novo_no + 56, 0, 4); // Inicia com NULL
-    printf("Chegou aqui 3");
     strcpy(nome_novo_produto, nome_produto);
-    printf("Chegou aqui 4");
     no_anterior = 0;
     no = inicio_lista;
-    printf("Chegou aqui 5");
     while (no != 0)
     {
         carregar_dados_no();
@@ -299,6 +295,7 @@ void insercao_produto()
                 memcpy(novo_no + 56, no, 4);
                 memcpy(no_anterior + 56, novo_no, 4);
             }      
+            tamanho_lista++;
             printf("\nProduto inserido com sucesso!");      
             return;
         }
@@ -317,6 +314,7 @@ void insercao_produto()
     {
         // Lista vazia
         inicio_lista = novo_no;
+        tamanho_lista++;
     }
     else
     {
@@ -576,6 +574,11 @@ void recebe_ano()
         printf("Confirma a data [%d]? (s/n) ", data_atual);
         scanf(" %c", &resposta);
     } while(resposta != 's');
+}
+
+void debug()
+{
+
 }
 
 void menu()
