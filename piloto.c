@@ -260,8 +260,9 @@ void insercao_produto()
     /*
         Cria um novo nó com os dados de nome_produto, lote, etc. e insere ordenadamente na lista
     */
-    novo_no = malloc(sizeof(char) * 60);
 
+    printf("Chegou aqui 1");
+    novo_no = malloc(sizeof(char) * 60);
     memcpy(novo_no + 0, nome_produto, 16);
     memcpy(novo_no + 16, &lote_produto, 4);
     memcpy(novo_no + 20, &tipo_produto, 4);
@@ -271,12 +272,12 @@ void insercao_produto()
     memcpy(novo_no + 48, &valor_compra, 4);
     memcpy(novo_no + 52, &valor_venda, 4);
     memset(novo_no + 56, 0, 4); // Inicia com NULL
-
+    printf("Chegou aqui 3");
     strcpy(nome_novo_produto, nome_produto);
-
+    printf("Chegou aqui 4");
     no_anterior = 0;
     no = inicio_lista;
-
+    printf("Chegou aqui 5");
     while (no != 0)
     {
         carregar_dados_no();
@@ -311,7 +312,7 @@ void insercao_produto()
         no_anterior = no;
         memcpy(no, no + 56, 4);
     }
-
+    printf("Chegou aqui 6");
     if (no_anterior == 0)
     {
         // Lista vazia
@@ -594,7 +595,8 @@ void menu()
 
     if (op_menu == 0)
     {
-        // chama a função de inserção de produto
+        pegar_dados_produto_input();
+        insercao_produto();
     }
 
     else if (op_menu == 1)
@@ -606,12 +608,12 @@ void menu()
         
         if (op_menu == 0)
         {
-            // chama função de remoção pelo nome
+            remocao_produto_nome();
         }
 
         else if (op_menu == 1)
         {
-            // chama função de remoção por prazo de validade
+            remocao_produto_validade();
         }
 
         else
@@ -623,11 +625,11 @@ void menu()
 
     else if (op_menu == 2)
     {
-        // chama a função de atualização de produto
+        atualizacao_produto();
     }
     else if (op_menu == 3)
     {
-        // chama a função de consulta de produto pelo nome
+        consulta();
     }
 
     else if (op_menu == 4)
@@ -668,17 +670,17 @@ void menu()
 
     else if (op_menu == 5)
     {
-        // chama a função de gravação de registros
+        gravar_no_disco();
     }
 
     else if (op_menu == 6)
     {
-        // chama a função de carregamento de registros
+        ler_do_disco();
     }
 
     else if (op_menu == 7)
     {
-        printf("\nDeseja a ordenaco por qual das opcoes abaixo?\n");
+        printf("\nDeseja a ordenacão por qual das opcoes abaixo?\n");
         printf("[0] - Nome\n");
         printf("[1] - Data de validade\n");
         printf("[2] - Quantidade de estoque\n");
@@ -686,7 +688,7 @@ void menu()
 
         if (op_menu == 0)
         {
-            // chama a função de relatório ordenado por nome
+            relatorio_ordenado_nome();
         }
 
         else if (op_menu == 1)
@@ -711,6 +713,8 @@ void menu()
         printf("Opcao invalida!\n");
         menu(); // Chama o menu novamente
     }
+
+    menu();
 }
 
 int main()
