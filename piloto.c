@@ -307,7 +307,7 @@ void insercao_produto()
         }
 
         no_anterior = no;
-        memcpy(no, no + 56, 4);
+        memcpy(&no, no + 56, 4);
     }
     printf("Chegou aqui 6");
     if (no_anterior == 0)
@@ -347,6 +347,7 @@ void remocao_produto_nome()
             memcpy(no_anterior + 56, no + 56, 4);
             free(no);
         }
+        tamanho_lista--;
         printf("\nProduto removido com sucesso!");
     }
 }
@@ -385,6 +386,7 @@ void remocao_produto_validade()
             }
 
             free(no);
+            tamanho_lista--;
         }
 
         else 
@@ -578,11 +580,26 @@ void recebe_ano()
 
 void debug()
 {
-
+    printf("\nVariáveis:");
+    printf("\nNome prod: %s",nome_produto);
+    printf("\nFornecedor %s:",fornecedor);
+    printf("\nData atual: %d",data_atual);
+    printf("\nTamanho: %d",tamanho_lista);
+    printf("\nLote: %d",lote_produto);
+    printf("\nTipo: %d",tipo_produto);
+    printf("\nData validade: %d",data_validade);
+    printf("\nQtd estoque: %d",quantidade_estoque);
+    printf("\nValor compra: %f",valor_compra);
+    printf("\nValor venda: %f",valor_venda);
+    printf("\nPonteiro prox: %d",ponteiro_prox);
+    printf("\nNo: %d",no);
+    printf("\nInicio lista: %d",inicio_lista);
+    printf("\nNome aux: %s",nome_aux);
 }
 
 void menu()
 {
+    debug();
     printf("\n--> Data atual: %d", data_atual);
     
     printf("\n\nSelecione uma das funcionalidades abaixo: \n");
