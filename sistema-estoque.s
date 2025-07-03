@@ -54,6 +54,10 @@
     txtConfirmaData:    .asciz  "\nConfirma a data [%d]? (s/n) "
     respostaChar:       .byte   's'
 
+    # strings da função gravar_no_disco
+    nomeArquivo:        .asciz  "dados.dat"
+    modoAberturaArq:    .asciz  "wb"
+
     # strings de formatação
     formatoSTR:     .asciz  "%s"
     formatoINT:     .asciz  "%d"
@@ -83,6 +87,7 @@
     .lcomm  novo_no,        4
     .lcomm  inicio_lista,   4
     .lcomm  arquivo_ptr,    4
+    .lcomm  indice_atual_lista, 4
 
     .lcomm  lixo,           4
 
@@ -355,6 +360,28 @@ menu:
         call    printf
         addl    $4, %esp
         jmp     menu
+
+gravar_no_disco:
+    # abrindo o arquivo com a função fopen
+    pushl   $modoAberturaArq    # empilhando "wb"
+    pushl   $nomeArquivo        # empilhando "dados.dat"
+    call    fopen
+
+    movl    %eax, arquivo_ptr   # salvando o ponteiro FILE* em arquivo_ptr
+
+    # escrevendo o tamanho da lista no início do arquivo
+    pushl   %eax                # empilhando o ponteiro FILE*
+    pushl   $1                  # empilhando o numero de blocos a serem escritos
+    pushl   $4                  # empilhando o tamanho de um inteiro (4 bytes)
+    pushl   $tamanho_lista      # empilhando o endereço do tamanho da lista
+    call    fwrite
+
+    addl    $24, %esp           # desempilhando os 6 pushl's
+
+    movl    inicio_lista, %eax
+    movl    %eax, indice_atual_lista          
+
+    RET
 
 fim:
     pushl   $0
