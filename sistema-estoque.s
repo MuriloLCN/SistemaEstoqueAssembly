@@ -56,7 +56,8 @@
 
     # strings da função gravar_no_disco
     nomeArquivo:        .asciz  "dados.dat"
-    modoAberturaArq:    .asciz  "wb"
+    modoEscritaArq:    .asciz  "wb"
+    modoLeituraArq:     .asciz  "rb"
 
     # strings de formatação
     formatoSTR:     .asciz  "%s"
@@ -363,7 +364,7 @@ menu:
 
 gravar_no_disco:
     # abrindo o arquivo com a função fopen
-    pushl   $modoAberturaArq    # empilhando "wb"
+    pushl   $modoEscritaArq    # empilhando "wb"
     pushl   $nomeArquivo        # empilhando "dados.dat"
     call    fopen
 
@@ -418,7 +419,7 @@ ler_do_disco:
     #   reg_atual_ptr -> no | deslocamento -> %eax | prox -> ponteiro_prox
 
     # abrindo o arquivo com a função fopen
-    pushl   $modoAberturaArq    # empilhando "wb"
+    pushl   $modoLeituraArq    # empilhando "wb"
     pushl   $nomeArquivo        # empilhando "dados.dat"
     call    fopen
 
@@ -441,10 +442,11 @@ ler_do_disco:
     movl    %eax, inicio_lista  # salvando também o início da lista
     
     # lendo o primeiro registro presente no arquivo
-    pushl   %eax                # empilhando o ponteiro FILE*
+    pushl   arquivo_ptr         # empilhando o ponteiro FILE*
     pushl   $1                  # empilhando o numero de blocos a serem escritos
     pushl   $56                 # empilhando o tamanho de um registro sem o campo do ponteiro próximo (56 bytes)
     pushl   $no                 # empilhando o endereço do nó que alocamos
+    call    fread
 
     addl    $20, %esp           # desempilhando os últimos 5 pushl's
 
