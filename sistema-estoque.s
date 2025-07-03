@@ -379,9 +379,39 @@ gravar_no_disco:
     addl    $24, %esp           # desempilhando os 6 pushl's
 
     movl    inicio_lista, %eax
-    movl    %eax, indice_atual_lista          
+    movl    %eax, indice_atual_lista         
 
-    RET
+    movl    $0, %ecx            # inicializando o controle do loop
+    _loop_gravar_no_disco:
+        cmpl    %ecx, tamanho_lista         # tamanho_lista - ecx
+        je      _fim_gravar_no_disco 
+
+        movl    $0, %eax
+        cmpl    indice_atual_lista, %eax    # verificando se não é NULL
+        je      _fim_gravar_no_disco
+
+        pushl   %ecx                        # apenas salvando ecx
+        pushl   arquivo_ptr                 # empilhando o ponteiro FILE*
+        pushl   $1                          # empilhando o numero de blocos a serem escritos
+        pushl   $56                         # empilhando o tamanho de um registro sem o último campo do ponteiro prox (56 bytes)
+        pushl   indice_atual_lista          # empilhando o endereço do começo do registro a ser escrito
+        call    fwrite
+
+        # atualizando o índice atual com o próximo elemento
+        movl    indice_atual_lista, %eax    # endereço do registro atual
+        addl    $56, %eax                   # offset para a posição do endereço do próximo registro
+        movl    (%eax), indice_atual_lista  # move o conteúdo da posição do endereço do próximo registro (ou seja, o endereço do próximo registro) para indice_atual_lista
+        
+        addl    $16, %esp                   # desempilhando os pushl's de argumentos do fwrite
+        popl    %ecx
+        incl    %ecx
+        jmp     _loop_gravar_no_disco
+
+    _fim_gravar_no_disco:
+        pushl   arquivo_ptr
+        call    fclose
+        addl    $4, %esp
+        RET
 
 fim:
     pushl   $0
