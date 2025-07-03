@@ -147,7 +147,7 @@ void print_no()
 
     carregar_dados_no();
 
-    printf("Produto: %s | Lote: %d, data de validade: %d, fornecedor: %s, quantidade no estoque: %d, valor de compra: %f, valor de venda: %f, tipo: ",nome_produto,lote_produto,data_validade, fornecedor, quantidade_estoque, valor_compra, valor_venda);
+    printf("\nProduto: %s | Lote: %d, data de validade: %d, fornecedor: %s, quantidade no estoque: %d, valor de compra: %f, valor de venda: %f, tipo: ",nome_produto,lote_produto,data_validade, fornecedor, quantidade_estoque, valor_compra, valor_venda);
     switch (tipo_produto)
     {
         case 0:
@@ -224,7 +224,7 @@ void encontrar_produto_nome()
         }
 
         no_anterior = no;
-        memcpy(no, no + 56, 4);
+        memcpy(&no, no + 56, 4);
     }
 }
 
@@ -287,13 +287,13 @@ void insercao_produto()
             // A -> B -> C
             if (no_anterior == 0)
             {
-                memcpy(novo_no + 56, inicio_lista, 4);
+                memcpy(novo_no + 56, &inicio_lista, 4);
                 inicio_lista = novo_no;
             }
             else
             {
-                memcpy(novo_no + 56, no, 4);
-                memcpy(no_anterior + 56, novo_no, 4);
+                memcpy(novo_no + 56, &no, 4);
+                memcpy(no_anterior + 56, &novo_no, 4);
             }      
             tamanho_lista++;
             printf("\nProduto inserido com sucesso!");      
@@ -318,7 +318,7 @@ void insercao_produto()
     }
     else
     {
-        memcpy(no_anterior + 56, novo_no, 4);
+        memcpy(no_anterior + 56, &novo_no, 4);
     }
 }
 
@@ -338,7 +338,7 @@ void remocao_produto_nome()
         if (no_anterior == 0)
         {
             // Primeiro elemento
-            memcpy(inicio_lista, no + 56, 4);
+            memcpy(&inicio_lista, no + 56, 4);
             free(no);
         }
         else
@@ -524,7 +524,7 @@ void relatorio_ordenado_nome()
     while (no != 0)
     {
         print_no();
-        memcpy(no, no + 56, 4); // no = no.prox
+        memcpy(&no, no + 56, 4); // no = no.prox
     }
 }
 
