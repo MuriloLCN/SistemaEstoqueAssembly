@@ -361,7 +361,7 @@ void remocao_produto_validade()
         adicional é pedido ao usuário, as comparações são feitas com base na data atual do sistema já inserida pelo usuário
     */
 
-    printf("\nRemovendo produtos fora de validade [%d] ...", data_atual);
+    printf("\nRemovendo produtos fora de validade ...\n");
 
     no_anterior = NULL;
     no = inicio_lista;
@@ -370,7 +370,6 @@ void remocao_produto_validade()
     {
         carregar_dados_no();
 
-        printf("\nData validade: %d\tData atual: %d\n");
         resultado_comparacao = data_validade - data_atual;
 
         if (resultado_comparacao < 0) // se a data de validade for estritamente menor que a data atual
@@ -388,7 +387,8 @@ void remocao_produto_validade()
                 // memcpy(no, no_anterior + 56, 4); // avançando na lista
             }
 
-            printf("Item:\t[%s]\tREMOVIDO\n", nome_produto);
+            printf("\nItem:\t[%s] \tREMOVIDO", nome_produto);
+            printf("\nData validade: %d\tData atual: %d\n", data_validade, data_atual);
 
             free(no);
             tamanho_lista--;
