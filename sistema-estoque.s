@@ -56,8 +56,13 @@
 
     # strings da função gravar_no_disco
     nomeArquivo:        .asciz  "dados.dat"
-    modoEscritaArq:    .asciz  "wb"
+    modoEscritaArq:     .asciz  "wb"
     modoLeituraArq:     .asciz  "rb"
+
+    # strings da função remocao_produto_validade
+    txtRemocaoValidade: .asciz  "\nRemovendo produtos fora de validade ...\n"
+    txtItemRemovido:    .asciz  "\nItem:\t[%s] \tREMOVIDO"
+    txtComparacaoData:  .asciz  "\nData validade: %d\tData atual: %d\n"
 
     # strings de formatação
     formatoSTR:     .asciz  "%s"
@@ -489,6 +494,76 @@ ler_do_disco:
         addl    $4, %esp
 
         RET
+
+remocao_produto_validade:
+    pushl   $txtRemocaoValidade
+    call    printf
+    addl    $4, %esp                # desempilhando a string inicial
+
+    movl    $0, %eax
+    movl    %eax, no_anterior       # no_anterior = NULL
+    movl    inicio_lista, %eax
+    movl    %eax, no                # nó atual aponta pro começo da lista
+
+    _while_remocao_validade:
+        movl    no, %eax
+        cmpl    $0, %eax                # verifica se o no atual não é NULL
+        je      _fim_remocao_validade
+
+        # call carregar_dados_no          # carrega os dados do no atual para as variáveis de trabalho
+        movl    data_validade, %eax
+        cmpl    data_atual, %eax        # data_validade - data_atual
+        jge     _if_sem_remocao
+
+        movl    no_anterior, %eax
+        cmpl    $0, %eax                # verificando se o nó anterior não é NULL
+        jg      _remocao_nao_primeiro   # se o nó anterior for NULL, o no atual é o primeiro da lista, continua
+        
+        movl    ponteiro_prox, %eax
+        movl    %eax, inicio_lista      # atualizando o início da lista com o segundo elemento
+        jmp     _finaliza_remocao
+
+        _remocao_nao_primeiro:
+            movl    no, %eax
+            addl    $56, %eax           # offset do ponteiro para o próximo registro
+            movl    no_anterior, %ebx   
+            addl    $56, %ebx           # offset de destino
+            movl    (%eax), %ebx        # move-se o ponteiro para o próximo registro para o campo próx do registro anterior
+
+        _finaliza_remocao:
+            pushl   $nome_produto
+            pushl   $txtItemRemovido
+            call    printf
+
+            pushl   data_atual
+            pushl   data_validade
+            pushl   $txtComparacaoData
+            call    printf
+
+            pushl   no                      # liberando a memória alocada para o nó
+            call    fornecedor
+
+            addl    $24, %esp               # desempilhando os últimos 6 pushl's
+            
+            movl    tamanho_lista, %eax 
+            decl    %eax
+            movl    %eax, tamanho_lista     # atualizando o tamanho da lista com o decremento
+
+            jmp     _avanca_no_remocao
+
+        _if_sem_remocao:
+            movl    no, %eax
+            movl    %eax, no_anterior       # atualizando apenas o nó anterior
+
+        _avanca_no_remocao:
+            movl    ponteiro_prox, %eax     # avançando na lista
+            movl    %eax, no
+
+            jmp     _while_remocao_validade
+
+    _fim_remocao_validade:
+        # espaço para eventualmente adicionar mais alguma informação
+        RET    
 
 fim:
     pushl   $0
