@@ -510,7 +510,7 @@ remocao_produto_validade:
         cmpl    $0, %eax                # verifica se o no atual não é NULL
         je      _fim_remocao_validade
 
-        # call carregar_dados_no          # carrega os dados do no atual para as variáveis de trabalho
+        call carregar_dados_no          # carrega os dados do no atual para as variáveis de trabalho
         movl    data_validade, %eax
         cmpl    data_atual, %eax        # data_validade - data_atual
         jge     _if_sem_remocao
@@ -528,7 +528,8 @@ remocao_produto_validade:
             addl    $56, %eax           # offset do ponteiro para o próximo registro
             movl    no_anterior, %ebx   
             addl    $56, %ebx           # offset de destino
-            movl    (%eax), %ebx        # move-se o ponteiro para o próximo registro para o campo próx do registro anterior
+            movl    (%eax), %ecx
+            movl    %ecx, (%ebx)        # move-se o ponteiro para o próximo registro para o campo próx do registro anterior
 
         _finaliza_remocao:
             pushl   $nome_produto
@@ -541,7 +542,7 @@ remocao_produto_validade:
             call    printf
 
             pushl   no                      # liberando a memória alocada para o nó
-            call    fornecedor
+            call    _fim_remocao_validade
 
             addl    $24, %esp               # desempilhando os últimos 6 pushl's
             
