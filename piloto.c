@@ -402,13 +402,15 @@ void remocao_produto_validade()
 void atualizacao_produto()
 {
     printf("\nInsira o nome do produto a ser alterado:\n>> ");
-    scanf("%s", nome_produto);
+    scanf("%s", nome_aux);
 
-    // Percorrer a lista e achar o nó do produto
+    encontrar_produto_nome();
 
-    // Se não achar, printar um erro e voltar pra main
-
-    // Talvez printar o produto?
+    if (no == 0)
+    {
+        printf("\nProduto não encontrado");
+        return;
+    }
 
     printf("\nInsira o estoque novo:\n>> ");
     scanf("%d", &quantidade_estoque);
