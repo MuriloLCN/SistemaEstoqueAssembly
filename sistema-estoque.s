@@ -565,6 +565,53 @@ remocao_produto_validade:
         # espaço para eventualmente adicionar mais alguma informação
         RET    
 
+carregar_dados_no:
+    pushl   $16
+    pushl   no
+    pushl   $nome_produto
+    call    memcpy                  # copiando o nome do produto para a variável de trabalho nome_produto
+    addl    $12, %esp
+
+    movl    no, %eax
+    addl    $16, %eax
+    movl    (%eax), %ebx
+    movl    %ebx, lote_produto      # copiando da memória o inteiro que representa o lote do produto
+
+    addl    $4, %eax                # avançando no registro
+    movl    (%eax), %ebx
+    movl    %ebx, tipo_produto
+
+    addl    $4, %eax
+    movl    (%eax), %ebx
+    movl    %ebx, data_validade
+
+    addl    $4, %eax
+    pushl   $16
+    pushl   %eax
+    pushl   $fornecedor
+    call    memcpy                  # copiando a string do nome do fornecedor (usamos memcpy por se tratar de 16 bytes)
+
+    addl    $12, %esp               # desempilhando os últimos pushl's
+
+    movl    no, %eax
+    addl    $44, %eax                   # offset da quantidade de estoque
+    movl    (%eax), %ebx
+    movl    %ebx, quantidade_estoque  
+
+    addl    $4, %eax
+    movl    (%eax), %ebx
+    movl    %ebx, valor_compra
+
+    addl    $4, %eax
+    movl    (%eax), %ebx
+    movl    %ebx, valor_venda
+
+    addl    $4, %eax
+    movl    (%eax), %ebx
+    movl    %ebx, ponteiro_prox
+
+    RET
+
 fim:
     pushl   $0
     call    exit
