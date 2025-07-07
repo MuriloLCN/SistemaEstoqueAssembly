@@ -319,6 +319,7 @@ void insercao_produto()
     else
     {
         memcpy(no_anterior + 56, &novo_no, 4);
+        tamanho_lista++;
     }
 }
 
@@ -369,6 +370,7 @@ void remocao_produto_validade()
     {
         carregar_dados_no();
 
+        printf("\nData validade: %d\tData atual: %d\n");
         resultado_comparacao = data_validade - data_atual;
 
         if (resultado_comparacao < 0) // se a data de validade for estritamente menor que a data atual
@@ -381,9 +383,12 @@ void remocao_produto_validade()
 
             else // se o elemento a ser removido não é o primeiro
             {
+                // o nó anterior continua sendo o mesmo, nesse caso
                 memcpy(no_anterior + 56, no + 56, 4);
                 // memcpy(no, no_anterior + 56, 4); // avançando na lista
             }
+
+            printf("Item:\t[%s]\tREMOVIDO\n", nome_produto);
 
             free(no);
             tamanho_lista--;
