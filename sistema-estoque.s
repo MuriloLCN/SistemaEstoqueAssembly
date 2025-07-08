@@ -64,6 +64,20 @@
     txtItemRemovido:    .asciz  "\nItem:\t[%s] \tREMOVIDO"
     txtComparacaoData:  .asciz  "\nData validade: %d\tData atual: %d\n"
 
+    # strings da função pegar_dados_produto_input
+    txtPedeNomeProduto: .asciz  "\nInsira:\nNome do produto:\n>> "
+    txtPedeLoteProduto: .asciz  "\nLote:\n>> "
+    txtPedeTipoProduto: .asciz  "\nTipo:\n0: Higiene\n1: Limpeza\n2: Perecíveis\n3: Não-Perecíveis\n4: Bebidas\n5: Padaria\n6: Açougue\n7: Congelados\n8: Utilidades\n9: Eletrodom.\n10: Petshop\n11: Infantis\n12: Hortifruti\n13: Papelaria\n14: Doces\n15: Outros\n>> "
+    txtPedeValiProduto: .asciz  "\nData validade (YYYYMMDD):\n>> "
+    txtPedeFornProduto: .asciz  "\nFornecedor:\n>> "
+    txtPedeQtdProduto:  .asciz  "\nQuantidade no estoque:\n>> "
+    txtPedeVComProduto: .asciz  "\nValor compra:\n>> "
+    txtPedeVVenProduto: .asciz  "\nValor compra:\n>> "
+
+    # strings da função insercao_produto
+    txtNomeDuplicado:   .asciz  "\nNome duplicado! Produto não pode ser inserido"
+    txtInsercaoSucesso: .asciz  "\nProduto inserido com sucesso!"
+
     # strings de formatação
     formatoSTR:     .asciz  "%s"
     formatoINT:     .asciz  "%d"
@@ -367,6 +381,8 @@ menu:
         addl    $4, %esp
         jmp     menu
 
+
+
 gravar_no_disco:
     # abrindo o arquivo com a função fopen
     pushl   $modoEscritaArq    # empilhando "wb"
@@ -613,6 +629,344 @@ carregar_dados_no:
 
     RET
 
+pegar_dados_produto_input:
+    # receber nome produto
+    pushl $txtPedeNomeProduto
+    call printf
+    addl $4, %esp
+
+    pushl $nome_produto
+    pushl $formatoSTR
+    call scanf
+    addl $8, %esp
+
+    # receber lote produto
+    pushl $txtPedeLoteProduto
+    call printf
+    addl $4, %esp
+
+    pushl $lote_produto
+    pushl $formatoINT
+    call scanf
+    addl $8, %esp
+
+    # receber tipo produto
+    pushl $txtPedeTipoProduto
+    call printf
+    addl $4, %esp
+
+    pushl $tipo_produto
+    pushl $formatoINT
+    call scanf
+    addl $8, %esp
+
+    # receber validade produto
+    pushl $txtPedeValiProduto
+    call printf
+    addl $4, %esp
+
+    pushl $data_validade
+    pushl $formatoINT
+    call scanf
+    addl $8, %esp
+
+    # receber fornecedor produto
+    pushl $txtPedeFornProduto
+    call printf
+    addl $4, %esp
+
+    pushl $fornecedor
+    pushl $formatoSTR
+    call scanf
+    addl $8, %esp
+    
+    # receber quantidade produto
+    pushl $txtPedeQtdProduto
+    call printf
+    addl $4, %esp
+
+    pushl $quantidade_estoque
+    pushl $formatoINT
+    call scanf
+    addl $8, %esp
+    
+    # receber valor de compra produto
+    pushl $txtPedeVComProduto
+    call printf
+    addl $4, %esp
+
+    pushl $valor_compra
+    pushl $formatoINT
+    call scanf
+    addl $8, %esp
+
+    # receber valor de venda produto
+    pushl $txtPedeVVenProduto
+    call printf
+    addl $4, %esp
+
+    pushl $valor_venda
+    pushl $formatoINT
+    call scanf
+    addl $8, %esp
+
+encontrar_produto_nome:
+    movl $0, %eax
+    movl %eax, no_anterior    # no_anterior = 0 (null)
+
+    movl inicio_lista, %eax
+    movl %eax, no             # no = inicio_lista
+
+    _encontrar_produto_nome_inicio_laco:
+        movl no, %eax
+        cmpl $0, %eax
+        je _encontrar_produto_nome_fim_laco
+
+        call carregar_dados_no
+
+        pushl $nome_aux
+        pushl $nome_produto
+        call strcmp
+        addl $8, %esp       # %eax = strcmp(nome_produto, nome_aux)
+
+        cmpl $0, %eax       # se resultado comparação == 0, saia do laço
+        je _encontrar_produto_nome_fim_laco
+
+        movl no, %eax
+        movl %eax, no_anterior
+
+        pushl $4
+        movl $56, %eax
+        addl no, %eax
+        pushl %eax
+        pushl $no
+        call memcpy        # memcpy(&no, no + 56, 4)
+        addl $12, %esp
+        
+        jmp _encontrar_produto_nome_inicio_laco
+
+    _encontrar_produto_nome_fim_laco:
+        RET
+
+insercao_produto:
+    pushl $60
+    call malloc
+    addl $4, %esp
+    movl %eax, novo_no   # novo_no = malloc(60 bytes)
+
+    movl %novo_no, %ecx   # ecx = novo_no + 0
+
+    # memcpy(novo_no + 0, nome_produto, 16)
+    pushl $16
+    pushl nome_produto
+    pushl %ecx
+    call memcpy
+    addl $12, %esp
+
+    addl $16, %ecx   # ecx = novo_no + 16
+
+    # memcpy(novo_no + 16, &lote_produto, 4)
+    pushl $4
+    pushl $lote_produto
+    pushl %ecx
+    call memcpy
+    addl $12, %esp
+
+    addl $4, %ecx   # ecx = novo_no + 20
+    
+    # memcpy(novo_no + 20, &tipo_produto, 4)
+    pushl $4
+    pushl $tipo_produto
+    pushl %ecx
+    call memcpy
+    addl $12, %esp
+
+    addl $4, %ecx  # ecx = novo_no + 24
+
+    # memcpy(novo_no + 24, &data_validade, 4)
+    pushl $4
+    pushl $data_validade
+    pushl %ecx
+    call memcpy
+    addl $12, %esp
+
+    addl $4, %ecx  # ecx = novo_no + 28
+
+    # memcpy(novo_no + 28, fornecedor, 16)
+    pushl $16
+    pushl fornecedor
+    pushl %ecx
+    call memcpy
+    addl $12, %esp
+
+    addl $16, %ecx  # ecx = novo_no + 44
+
+    # memcpy(novo_no + 44, &quantidade_estoque, 4)
+    pushl $4
+    pushl $quantidade_estoque
+    pushl %ecx
+    call memcpy
+    addl $12, %esp
+
+    addl $4, %ecx  # ecx = novo_no + 48
+
+    # memcpy(novo_no + 48, &valor_compra, 4)
+    pushl $4
+    pushl $valor_compra
+    pushl %ecx
+    call memcpy
+    addl $12, %esp
+
+    addl $4, %ecx  # ecx = novo_no + 52
+
+    # memcpy(novo_no + 52, &valor_venda, 4)
+    pushl $4
+    pushl $valor_venda
+    pushl %ecx
+    call memcpy
+    addl $12, %esp
+
+    addl $4, %ecx  # ecx = novo_no + 56
+
+    # memset(novo_no + 56, 0, 4)
+    pushl $4
+    pushl $0
+    pushl %ecx
+    call memset
+    addl $12, %esp
+    
+    # strcpy(nome_novo_produto, nome_produto)
+    pushl nome_produto
+    pushl nome_novo_produto
+    call strcpy
+    addl $8, %esp
+
+    movl $0, %eax
+    movl %eax, no_anterior # no anterior = 0
+
+    movl inicio_lista, %eax
+    movl %eax, no # no = inicio lista
+
+    _insercao_produto_inicio_laco:
+        movl no, %eax
+        cmpl $0, %eax
+        je _insercao_produto_fim_laco
+
+        call carregar_dados_no
+
+        pushl nome_novo_produto
+        pushl nome_produto
+        call strcmp
+        addl $8, %esp   # eax = strcmp(nome_produto, nome_novo_produto)
+
+        movl %eax, resultado_comparacao
+
+        cmpl $0, %eax
+        je _insercao_produto_nome_duplicado
+        jmp _insercao_produto_nome_nao_duplicado
+        _insercao_produto_nome_duplicado:
+            pushl $txtNomeDuplicado
+            call printf
+            pushl novo_no
+            call free
+            addl $8, %esp
+            RET
+        _insercao_produto_nome_nao_duplicado:
+        movl resultado_comparacao, %eax
+        cmpl $0, %eax
+        jg _insercao_produto_achou_lugar
+        jmp _insercao_produto_continua_laco
+
+        _insercao_produto_achou_lugar:
+            movl no_anterior, %eax
+            cmpl $0, %eax
+            je _insercao_produto_no_anterior_zero
+            jne _insercao_produto_no_anterior_nao_zero
+
+            _insercao_produto_no_anterior_zero:
+                pushl $4
+                pushl $inicio_lista
+                movl %eax, novo_no
+                addl $56, %eax
+                pushl %eax
+                call memcpy
+                addl $12, %esp # memcpy(novo_no + 56, &inicio_lista, 4)
+
+                movl novo_no, %eax
+                movl %eax, inicio_lista # inicio_lista = novo_no
+
+                jmp _insercao_produto_continuar_interno
+
+            _insercao_produto_no_anterior_nao_zero:
+                pushl $4
+                pushl $no
+                movl novo_no, %eax
+                addl $56, %eax
+                pushl %eax
+                call memcpy
+                addl $12, %esp # memcpy(novo_no + 56, &no, 4)
+                
+                pushl $4
+                pushl $novo_no
+                movl no_anterior, %eax
+                addl $56, %eax
+                call memcpy
+                addl $12, %esp # memcpy(no_anterior + 56, &novo_no, 4)
+
+                jmp _insercao_produto_continuar_interno
+
+            _insercao_produto_continuar_interno:     
+
+            movl tamanho_lista, %eax
+            incl %eax
+            movl %eax, $tamanho_lista
+
+            pushl $txtInsercaoSucesso
+            call printf
+            addl $4, %esp
+            RET
+
+        _insercao_produto_continua_laco:
+        movl no, %eax
+        movl %eax, no_anterior # no_anterior - no
+
+        pushl $4
+        addl $56, %eax
+        pushl %eax
+        pushl $no
+        call memcpy
+        addl $12, %esp # memcpy(&no, no + 56, 4)
+
+        jmp _insercao_produto_inicio_laco
+
+    _insercao_produto_fim_laco:
+
+    movl no_anterior, %eax
+    cmpl $0, %eax
+    jne _insercao_produto_fim
+
+    # lista vazia
+
+    movl novo_no, %eax
+    movl %eax, inicio_lista  # inicio_lista = novo_no
+
+    movl tamanho_lista, %eax
+    incl %eax
+    movl %eax, tamanho_lista # tamanho_lista ++
+
+    RET
+
+    _insercao_produto_fim:
+
+    pushl $4
+    pushl $novo_no
+    movl no_anterior, %eax
+    addl $56, %eax
+    pushl %eax
+    call memcpy
+    addl $12, %esp  # memcpy(no_anterior + 56, &novo_no, 4)
+
+    RET
 fim:
     pushl   $0
     call    exit
