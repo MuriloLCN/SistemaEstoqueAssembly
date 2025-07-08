@@ -78,6 +78,32 @@
     txtNomeDuplicado:   .asciz  "\nNome duplicado! Produto não pode ser inserido"
     txtInsercaoSucesso: .asciz  "\nProduto inserido com sucesso!"
 
+    # strings da função de consulta
+    txtProdutoNaoEncon: .asciz  "\nProduto não encontrado"
+
+    # strings da função de print_no
+    txtPrintNulo:       .asciz  "\nNó nulo"
+    txtPrintNo:         .asciz  "\nProduto: %s | Lote: %d, data de validade: %d, fornecedor: %s, quantidade no estoque: %d, valor de compra: %f, valor de venda: %f, tipo: "
+    txtPrintHigiene:    .asciz  "Higiene"  
+    txtPrintLimpeza:    .asciz  "Limpeza"  
+    txtPrintPereciveis: .asciz  "Perecíveis"  
+    txtPrintNaoPereciv: .asciz  "Não-Perecíveis"  
+    txtPrintBebidas:    .asciz  "Bebidas"  
+    txtPrintPadaria:    .asciz  "Padaria"    
+    txtPrintAcougue:    .asciz  "Açougue"    
+    txtPrintCongelados: .asciz  "Congelados"    
+    txtPrintUtilidades: .asciz  "Utilidades"    
+    txtPrintEletrodom:  .asciz  "Eletrodom."    
+    txtPrintPetshop:    .asciz  "Petshop"    
+    txtPrintInfantis:   .asciz  "Infantis"    
+    txtPrintHortifruti: .asciz  "Hortifruti"    
+    txtPrintPapelaria:  .asciz  "Papelaria"    
+    txtPrintDoces:      .asciz  "Doces"
+    txtPrintOutros:     .asciz  "Outros"
+
+    # strings do relatorio ordenado por nome
+    txtBannerOrdNome:   .asciz  "\n-----------------------\nProdutos ordenados por nome\n-----------------------"
+
     # strings de formatação
     formatoSTR:     .asciz  "%s"
     formatoINT:     .asciz  "%d"
@@ -750,11 +776,13 @@ encontrar_produto_nome:
 
 insercao_produto:
     pushl $60
-    call malloc
+    call malloc   # alocando novo nó
     addl $4, %esp
     movl %eax, novo_no   # novo_no = malloc(60 bytes)
 
     movl %novo_no, %ecx   # ecx = novo_no + 0
+
+    # copiando informações para o novo nó ...
 
     # memcpy(novo_no + 0, nome_produto, 16)
     pushl $16
@@ -841,6 +869,8 @@ insercao_produto:
     call strcpy
     addl $8, %esp
 
+    # Iniciando busca pelo local de inserção na lista
+
     movl $0, %eax
     movl %eax, no_anterior # no anterior = 0
 
@@ -850,7 +880,7 @@ insercao_produto:
     _insercao_produto_inicio_laco:
         movl no, %eax
         cmpl $0, %eax
-        je _insercao_produto_fim_laco
+        je _insercao_produto_fim_laco  # while (no != 0)
 
         call carregar_dados_no
 
@@ -967,6 +997,190 @@ insercao_produto:
     addl $12, %esp  # memcpy(no_anterior + 56, &novo_no, 4)
 
     RET
+
+consulta:
+    pushl $txtPedeNomeProduto
+    call printf
+    addl $4, %esp
+
+    pushl $nome_aux
+    pushl $formatoSTR
+    call scanf
+    addl $8, %esp
+    
+    call encontrar_produto_nome
+    
+    movl no, %eax
+    cmpl $0, %eax
+    je _consulta_no_nulo
+    jne _consulta_no_nao_nulo
+
+    _consulta_no_nulo:
+        pushl $txtProdutoNaoEncon
+        call printf
+        addl $4, %esp
+        RET
+
+    _consulta_no_nao_nulo:
+        call print_no
+
+print_no:
+    movl no, %eax
+    cmpl $0, %eax
+    jne _print_nao_nulo
+
+    pushl $txtPrintNulo
+    call printf
+    addl $4, %esp
+    RET
+
+    _print_nao_nulo:
+    
+    call carregar_dados_no
+    
+    pushl valor_venda
+    pushl valor_compra
+    pushl quantidade_estoque
+    pushl $fornecedor
+    pushl data_validade
+    pushl lote_produto
+    pushl $nome_produto
+    pushl $txtPrintNo
+    call printf
+    addl $32, %esp
+
+    movl tipo_produto, %eax
+
+    cmpl $0, %eax
+    je _caso_0
+    cmpl $1, %eax
+    je _caso_1
+    cmpl $2, %eax
+    je _caso_2
+    cmpl $3, %eax
+    je _caso_3
+    cmpl $4, %eax
+    je _caso_4
+    cmpl $5, %eax
+    je _caso_5
+    cmpl $6, %eax
+    je _caso_6
+    cmpl $7, %eax
+    je _caso_7
+    cmpl $8, %eax
+    je _caso_8
+    cmpl $9, %eax
+    je _caso_9
+    cmpl $10, %eax
+    je _caso_10
+    cmpl $11, %eax
+    je _caso_11
+    cmpl $12, %eax
+    je _caso_12
+    cmpl $13, %eax
+    je _caso_13
+    cmpl $14, %eax
+    je _caso_14
+    cmpl $15, %eax
+    je _caso_15
+    
+    _caso_0:
+        pushl $txtPrintHigiene
+        jmp _print_final
+    
+    _caso_1:
+        pushl $txtPrintLimpeza
+        jmp _print_final
+
+    _caso_2:
+        pushl $txtPrintPereciveis
+        jmp _print_final
+
+    _caso_3:
+        pushl $txtPrintNaoPereciv
+        jmp _print_final
+
+    _caso_4:
+        pushl $txtPrintBebidas
+        jmp _print_final
+
+    _caso_5:
+        pushl $txtPrintPadaria
+        jmp _print_final
+
+    _caso_6:
+        pushl $txtPrintAcougue
+        jmp _print_final
+
+    _caso_7:
+        pushl $txtPrintCongelados
+        jmp _print_final
+
+    _caso_8:
+        pushl $txtPrintUtilidades
+        jmp _print_final
+
+    _caso_9:
+        pushl $txtPrintEletrodom
+        jmp _print_final
+
+    _caso_10:
+        pushl $txtPrintPetshop
+        jmp _print_final
+    
+    _caso_11:
+        pushl $txtPrintInfantis
+        jmp _print_final
+
+    _caso_12:
+        pushl $txtPrintHortifruti
+        jmp _print_final
+
+    _caso_13:
+        pushl $txtPrintPapelaria
+        jmp _print_final
+
+    _caso_14:
+        pushl $txtPrintDoces
+        jmp _print_final
+
+    _caso_15:
+        pushl $txtPrintOutros
+        jmp _print_final
+
+    _print_final:
+        call printf
+        addl $4, %esp
+    
+    RET
+
+relatorio_ordenado_nome:
+    movl inicio_lista, %eax
+    movl %eax, no
+
+    pushl $txtBannerOrdNome
+    call printf
+    addl $4, %esp
+
+    _relatorio_ord_nome_inicio_laco:
+        movl no, %eax
+        cmpl $0, %eax
+        je _relatorio_ord_nome_fim_laco # while (no != 0)
+
+        call print_no
+
+        pushl $4
+        movl no, %eax
+        addl $56, %eax
+        pushl $eax
+        pushl $no  # memcpy(&no, no + 56, 4)
+        call memcpy
+        addl $12, %esp
+
+        jmp _relatorio_ord_nome_inicio_laco
+    _relatorio_ord_nome_fim_laco:
+        RET
+
 fim:
     pushl   $0
     call    exit
