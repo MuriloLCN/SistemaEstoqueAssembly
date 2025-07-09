@@ -1246,7 +1246,7 @@ relatorio_ordenado_nome:
         RET
 
 atualizacao_produto:
-    pushl txtAtualizNomeProd
+    pushl $txtAtualizNomeProd
     call printf
     addl $4, %esp
     
@@ -1271,7 +1271,7 @@ atualizacao_produto:
 
     _atualizao_no_nao_nulo:
     
-    pushl txtAtualizNovoEsto
+    pushl $txtAtualizNovoEsto
     call printf
     addl $4, %esp
     
@@ -1280,7 +1280,7 @@ atualizacao_produto:
     call scanf
     addl $8, %esp
 
-    pushl txtAtualizNovoVVen
+    pushl $txtAtualizNovoVVen
     call printf
     addl $4, %esp
     
@@ -1294,6 +1294,7 @@ atualizacao_produto:
     movl no, %eax
     addl $44, %eax
     pushl %eax  # memcpy(no + 44, &quantidade_estoque, 4), copia novo estoque
+    call memcpy
     addl $12, %esp
 
     pushl $4
@@ -1301,6 +1302,7 @@ atualizacao_produto:
     movl no, %eax
     addl $52, %eax
     pushl %eax  # memcpy(no + 52, &valor_venda, 4), copia novo estoque
+    call memcpy
     addl $12, %esp
 
     pushl $txtAtualizSucesso
@@ -1353,7 +1355,9 @@ remocao_produto_nome:
         jmp _remocao_finalizar
 
     _remocao_nesimo_elemento:
-        pushl no_anterior # memcpy(no_anterior + 56, no + 56, 4)
+        movl no_anterior, %edx
+        addl $56, %edx
+        pushl %edx # memcpy(no_anterior + 56, no + 56, 4)
         jmp _remocao_finalizar
 
     _remocao_finalizar:
