@@ -58,8 +58,8 @@
     nomeArquivo:        .asciz  "dados.dat"
     modoEscritaArq:     .asciz  "wb"
     modoLeituraArq:     .asciz  "rb"
-    txtGravacaoOK:      .asciz  "\n---> A gravacao no disco foi efetuada com sucesso!\n---> Numero de registros gravados: %d\n"
-    txtLeituraOK:       .asciz  "\n---> A leitura do disco foi efetuada com sucesso!\n---> Numero de registros lidos: %d\n"
+    txtGravacaoOK:      .asciz  "\n---> A gravacao no disco foi efetuada com sucesso!\n---> Numero de registros gravados: %d\n\n"
+    txtLeituraOK:       .asciz  "\n---> A leitura do disco foi efetuada com sucesso!\n---> Numero de registros lidos: %d\n\n"
 
     # strings da função remocao_produto_validade
     txtRemocaoValidade: .asciz  "\nRemovendo produtos fora de validade ...\n"
@@ -521,7 +521,7 @@ ler_do_disco:
     pushl   arquivo_ptr         # empilhando o ponteiro FILE*
     pushl   $1                  # empilhando o numero de blocos a serem escritos
     pushl   $56                 # empilhando o tamanho de um registro sem o campo do ponteiro próximo (56 bytes)
-    pushl   $no                 # empilhando o endereço do nó que alocamos
+    pushl   no                 # empilhando o endereço do nó que alocamos
     call    fread
 
     addl    $20, %esp           # desempilhando os últimos 5 pushl's
@@ -540,7 +540,7 @@ ler_do_disco:
         pushl   arquivo_ptr         # empilhando o ponteiro FILE*
         pushl   $1                  # empilhando o numero de blocos a serem escritos
         pushl   $56                 # empilhando o tamanho de um registro sem o campo do ponteiro próximo (56 bytes)
-        pushl   $ponteiro_prox      # empilhando o endereço do nó que alocamos
+        pushl   ponteiro_prox       # empilhando o endereço do nó que alocamos
         call    fread
 
         addl    $20, %esp           # desempilhando os últimos 5 pushl's
@@ -559,7 +559,8 @@ ler_do_disco:
         # terminando a lista
         movl    no, %eax
         addl    $56, %eax
-        movl    $0, (%eax)          # aterrando o último ponteiro para o próximo elemento
+        movl    $0, %ebx
+        movl    %ebx, (%eax)          # aterrando o último ponteiro para o próximo elemento
 
         pushl   arquivo_ptr
         call    fclose
