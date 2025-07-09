@@ -1042,6 +1042,10 @@ insercao_produto:
     call memcpy
     addl $12, %esp  # memcpy(no_anterior + 56, &novo_no, 4)
 
+    movl tamanho_lista, %eax
+    incl %eax
+    movl %eax, tamanho_lista # tamanho_lista ++
+
     RET
 
 consulta:
