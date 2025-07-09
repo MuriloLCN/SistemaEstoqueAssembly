@@ -455,7 +455,10 @@ gravar_no_disco:
 
     movl    $0, %ecx            # inicializando o controle do loop
     _loop_gravar_no_disco:
-        cmpl    %ecx, tamanho_lista         # tamanho_lista - ecx
+        movl    tamanho_lista, %edx
+        incl    %edx
+
+        cmpl    %ecx, %edx         # tamanho_lista - ecx + 1
         je      _fim_gravar_no_disco 
 
         movl    $0, %eax
@@ -555,6 +558,8 @@ ler_do_disco:
         movl    %edx, (%eax)
         movl    ponteiro_prox, %ebx
         movl    %ebx, no
+
+        jmp _loop_ler_do_disco
 
     _fim_ler_do_disco:
         # terminando a lista
@@ -979,6 +984,7 @@ insercao_produto:
                 pushl $novo_no
                 movl no_anterior, %eax
                 addl $56, %eax
+                pushl %eax
                 call memcpy
                 addl $12, %esp # memcpy(no_anterior + 56, &novo_no, 4)
 
