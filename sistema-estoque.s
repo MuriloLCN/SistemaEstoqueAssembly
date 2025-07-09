@@ -58,6 +58,8 @@
     nomeArquivo:        .asciz  "dados.dat"
     modoEscritaArq:     .asciz  "wb"
     modoLeituraArq:     .asciz  "rb"
+    txtGravacaoOK:      .asciz  "\n---> A gravacao no disco foi efetuada com sucesso!\n---> Numero de registros gravados: %d\n"
+    txtLeituraOK:       .asciz  "\n---> A leitura do disco foi efetuada com sucesso!\n---> Numero de registros lidos: %d\n"
 
     # strings da função remocao_produto_validade
     txtRemocaoValidade: .asciz  "\nRemovendo produtos fora de validade ...\n"
@@ -289,6 +291,7 @@ menu:
             cmpl    op_menu, %eax
             jne     _if_op_invalida    # se a opção escolhida é inválida
             # chama função de remoção por data de validade
+            call    remocao_produto_validade
             jmp     menu
     
     _if_atualizacao:
@@ -363,6 +366,7 @@ menu:
         cmpl    op_menu, %eax       # eax - op_menu
         jne     _if_carrega_reg     # se os valores forem diferentes, passa para o carregamento dos registro vindos do disco
         # chama função para gravar os registros no disco
+        call    gravar_no_disco
         jmp     menu
 
     _if_carrega_reg:
@@ -370,6 +374,7 @@ menu:
         cmpl    op_menu, %eax       # eax - op_menu
         jne     _if_relatorio       # se os valores forem diferentes, passa para a escolha do relatório
         # chama função para carregar os registros do disco
+        call    ler_do_disco
         jmp     menu
     
     _if_relatorio:
@@ -477,7 +482,12 @@ gravar_no_disco:
     _fim_gravar_no_disco:
         pushl   arquivo_ptr
         call    fclose
-        addl    $4, %esp
+
+        pushl   tamanho_lista
+        pushl   $txtGravacaoOK
+        call    printf
+
+        addl    $12, %esp
         RET
     
 ler_do_disco:
@@ -553,7 +563,11 @@ ler_do_disco:
 
         pushl   arquivo_ptr
         call    fclose
-        addl    $4, %esp
+
+        pushl   tamanho_lista
+        pushl   $txtLeituraOK
+        call    printf
+        addl    $12, %esp
 
         RET
 
