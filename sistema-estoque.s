@@ -952,7 +952,8 @@ insercao_produto:
             _insercao_produto_no_anterior_zero:
                 pushl $4
                 pushl $inicio_lista
-                movl %eax, novo_no
+                # movl %eax, novo_no
+                movl novo_no, %eax
                 addl $56, %eax
                 pushl %eax
                 call memcpy
