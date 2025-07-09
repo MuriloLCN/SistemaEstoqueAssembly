@@ -72,7 +72,7 @@
     txtPedeFornProduto: .asciz  "\nFornecedor:\n>> "
     txtPedeQtdProduto:  .asciz  "\nQuantidade no estoque:\n>> "
     txtPedeVComProduto: .asciz  "\nValor compra:\n>> "
-    txtPedeVVenProduto: .asciz  "\nValor compra:\n>> "
+    txtPedeVVenProduto: .asciz  "\nValor venda:\n>> "
 
     # strings da função insercao_produto
     txtNomeDuplicado:   .asciz  "\nNome duplicado! Produto não pode ser inserido"
@@ -100,6 +100,17 @@
     txtPrintPapelaria:  .asciz  "Papelaria"    
     txtPrintDoces:      .asciz  "Doces"
     txtPrintOutros:     .asciz  "Outros"
+
+    # strings da função de atualizacao_produto
+    txtAtualizNomeProd: .asciz "\nInsira o nome do produto a ser alterado:\n>> "
+    txtAtualizNovoEsto: .asciz "\nInsira o estoque novo:\n>> "
+    txtAtualizNovoVVen: .asciz "\nInsira o valor de venda:\n>> "
+    txtAtualizSucesso:  .asciz "\nProduto alterado com sucesso!"
+
+    # strings da função de remocao_produto_nome
+    txtRemocaoSucesso:  .asciz "\nProduto removido com sucesso!"
+    txtRemocaoPedeNome: .asciz "\nInsira o nome do produto a ser removido:\n >> "
+
 
     # strings do relatorio ordenado por nome
     txtBannerOrdNome:   .asciz  "\n-----------------------\nProdutos ordenados por nome\n-----------------------"
@@ -134,6 +145,8 @@
     .lcomm  inicio_lista,   4
     .lcomm  arquivo_ptr,    4
     .lcomm  indice_atual_lista, 4
+
+    .lcomm  nome_novo_produto, 16
 
     .lcomm  lixo,           4
 
@@ -241,6 +254,8 @@ menu:
         cmpl    op_menu, %eax       # eax - op_menu
         jne     _if_remocao         # se os valores forem diferentes, passa para a verificação da remoção
         # senão, chama a função de inserção do produto
+        call pegar_dados_produto_input
+        call insercao_produto
         jmp     menu
 
     _if_remocao:
@@ -266,6 +281,7 @@ menu:
             cmpl    op_menu, %eax
             jne     _if_remocao_validade    # verifica se a remoção por nome foi escolhida
             # chama função de remoção pelo nome
+            call remocao_produto_nome
             jmp     menu
         
         _if_remocao_validade:
@@ -280,6 +296,7 @@ menu:
         cmpl    op_menu, %eax       # eax - op_menu
         jne     _if_consulta_nome   # se os valores forem diferentes, passa para a verificação se vai consultar produto por nome
         # chama função de atualização do protudo
+        call atualizacao_produto
         jmp     menu
 
     _if_consulta_nome:
@@ -287,6 +304,7 @@ menu:
         cmpl    op_menu, %eax       # eax - op_menu
         jne     _if_consulta        # se os valores forem diferentes, passa para a escolha da consulta
         # chama função de consultar produto pelo nome
+        call consulta
         jmp     menu
     
     _if_consulta:
@@ -448,7 +466,8 @@ gravar_no_disco:
         # atualizando o índice atual com o próximo elemento
         movl    indice_atual_lista, %eax    # endereço do registro atual
         addl    $56, %eax                   # offset para a posição do endereço do próximo registro
-        movl    (%eax), indice_atual_lista  # move o conteúdo da posição do endereço do próximo registro (ou seja, o endereço do próximo registro) para indice_atual_lista
+        movl    (%eax), %ebx
+        movl    %ebx, indice_atual_lista  # move o conteúdo da posição do endereço do próximo registro (ou seja, o endereço do próximo registro) para indice_atual_lista
         
         addl    $16, %esp                   # desempilhando os pushl's de argumentos do fwrite
         popl    %ecx
@@ -521,7 +540,8 @@ ler_do_disco:
         # ligando os nós
         movl    no, %eax
         addl    $56, %eax
-        movl    ponteiro_prox, (%eax)
+        movl    ponteiro_prox, %edx
+        movl    %edx, (%eax)
         movl    ponteiro_prox, %ebx
         movl    %ebx, no
 
@@ -777,95 +797,95 @@ encontrar_produto_nome:
 insercao_produto:
     pushl $60
     call malloc   # alocando novo nó
-    addl $4, %esp
     movl %eax, novo_no   # novo_no = malloc(60 bytes)
+    addl $4, %esp
 
-    movl %novo_no, %ecx   # ecx = novo_no + 0
+    movl novo_no, %ebx   # ebx = novo_no + 0
 
     # copiando informações para o novo nó ...
 
     # memcpy(novo_no + 0, nome_produto, 16)
     pushl $16
-    pushl nome_produto
-    pushl %ecx
+    pushl $nome_produto
+    pushl %ebx
     call memcpy
     addl $12, %esp
 
-    addl $16, %ecx   # ecx = novo_no + 16
+    addl $16, %ebx   # ebx = novo_no + 16
 
     # memcpy(novo_no + 16, &lote_produto, 4)
     pushl $4
     pushl $lote_produto
-    pushl %ecx
+    pushl %ebx
     call memcpy
     addl $12, %esp
 
-    addl $4, %ecx   # ecx = novo_no + 20
+    addl $4, %ebx   # ebx = novo_no + 20
     
     # memcpy(novo_no + 20, &tipo_produto, 4)
     pushl $4
     pushl $tipo_produto
-    pushl %ecx
+    pushl %ebx
     call memcpy
     addl $12, %esp
 
-    addl $4, %ecx  # ecx = novo_no + 24
+    addl $4, %ecx  # ebx = novo_no + 24
 
     # memcpy(novo_no + 24, &data_validade, 4)
     pushl $4
     pushl $data_validade
-    pushl %ecx
+    pushl %ebx
     call memcpy
     addl $12, %esp
 
-    addl $4, %ecx  # ecx = novo_no + 28
+    addl $4, %ecx  # ebx = novo_no + 28
 
     # memcpy(novo_no + 28, fornecedor, 16)
     pushl $16
-    pushl fornecedor
-    pushl %ecx
+    pushl $fornecedor
+    pushl %ebx
     call memcpy
     addl $12, %esp
 
-    addl $16, %ecx  # ecx = novo_no + 44
+    addl $16, %ebx  # ebx = novo_no + 44
 
     # memcpy(novo_no + 44, &quantidade_estoque, 4)
     pushl $4
     pushl $quantidade_estoque
-    pushl %ecx
+    pushl %ebx
     call memcpy
     addl $12, %esp
 
-    addl $4, %ecx  # ecx = novo_no + 48
+    addl $4, %ebx  # ebx = novo_no + 48
 
     # memcpy(novo_no + 48, &valor_compra, 4)
     pushl $4
     pushl $valor_compra
-    pushl %ecx
+    pushl %ebx
     call memcpy
     addl $12, %esp
 
-    addl $4, %ecx  # ecx = novo_no + 52
+    addl $4, %ebx  # ebx = novo_no + 52
 
     # memcpy(novo_no + 52, &valor_venda, 4)
     pushl $4
     pushl $valor_venda
-    pushl %ecx
+    pushl %ebx
     call memcpy
     addl $12, %esp
 
-    addl $4, %ecx  # ecx = novo_no + 56
+    addl $4, %ebx  # ebx = novo_no + 56
 
     # memset(novo_no + 56, 0, 4)
     pushl $4
     pushl $0
-    pushl %ecx
+    pushl %ebx
     call memset
     addl $12, %esp
     
     # strcpy(nome_novo_produto, nome_produto)
-    pushl nome_produto
-    pushl nome_novo_produto
+    pushl $nome_produto
+    pushl $nome_novo_produto
     call strcpy
     addl $8, %esp
 
@@ -949,7 +969,7 @@ insercao_produto:
 
             movl tamanho_lista, %eax
             incl %eax
-            movl %eax, $tamanho_lista
+            movl %eax, tamanho_lista
 
             pushl $txtInsercaoSucesso
             call printf
@@ -1172,7 +1192,7 @@ relatorio_ordenado_nome:
         pushl $4
         movl no, %eax
         addl $56, %eax
-        pushl $eax
+        pushl %eax
         pushl $no  # memcpy(&no, no + 56, 4)
         call memcpy
         addl $12, %esp
@@ -1180,6 +1200,136 @@ relatorio_ordenado_nome:
         jmp _relatorio_ord_nome_inicio_laco
     _relatorio_ord_nome_fim_laco:
         RET
+
+atualizacao_produto:
+    pushl txtAtualizNomeProd
+    call printf
+    addl $4, %esp
+    
+    pushl $nome_aux
+    pushl $formatoSTR
+    call scanf
+    addl $8, %esp
+
+    call encontrar_produto_nome
+
+    # se no == 0, sai
+
+    movl no, %eax
+    cmpl $0, %eax
+    jne _atualizao_no_nao_nulo
+
+    pushl $txtProdutoNaoEncon
+    call printf
+    addl $4, %esp
+
+    RET
+
+    _atualizao_no_nao_nulo:
+    
+    pushl txtAtualizNovoEsto
+    call printf
+    addl $4, %esp
+    
+    pushl $quantidade_estoque   # pede novo estoque
+    pushl $formatoINT
+    call scanf
+    addl $8, %esp
+
+    pushl txtAtualizNovoVVen
+    call printf
+    addl $4, %esp
+    
+    pushl $valor_venda   # pede novo valor de venda
+    pushl $formatoINT
+    call scanf
+    addl $8, %esp
+    
+    pushl $4
+    pushl $quantidade_estoque
+    movl no, %eax
+    addl $44, %eax
+    pushl %eax  # memcpy(no + 44, &quantidade_estoque, 4), copia novo estoque
+    addl $12, %esp
+
+    pushl $4
+    pushl $valor_venda
+    movl no, %eax
+    addl $52, %eax
+    pushl %eax  # memcpy(no + 52, &valor_venda, 4), copia novo estoque
+    addl $12, %esp
+
+    pushl $txtAtualizSucesso
+    call printf
+    addl $4, %esp
+
+    RET
+
+remocao_produto_nome:
+    pushl $txtRemocaoPedeNome
+    call printf
+    addl $4, %esp
+
+    pushl $nome_aux   # pega nome do produto a ser removido
+    pushl $formatoSTR 
+    call scanf
+    addl $8, %esp
+
+    call encontrar_produto_nome
+
+    # se no == 0, sai
+
+    movl no, %eax
+    cmpl $0, %eax
+    jne _remocao_no_nao_nulo
+
+    pushl $txtProdutoNaoEncon
+    call printf
+    addl $4, %esp
+
+    RET
+
+    _remocao_no_nao_nulo:
+
+    # se no_anterior == 0, é o primeiro elemento, senão é o N-Ésimo
+
+    pushl $4
+    movl no, %ebx
+    addl $56, %ebx  # ebx = no + 56, posicao do ponteiro
+    pushl %ebx
+
+    movl no_anterior, %eax
+    cmpl $0, %eax
+    je _remocao_primeiro_elemento
+    jmp _remocao_nesimo_elemento
+
+    
+    _remocao_primeiro_elemento:
+        pushl $inicio_lista # memcpy(&inicio_lista, no + 56, 4)
+        jmp _remocao_finalizar
+
+    _remocao_nesimo_elemento:
+        pushl no_anterior # memcpy(no_anterior + 56, no + 56, 4)
+        jmp _remocao_finalizar
+
+    _remocao_finalizar:
+        call memcpy
+        addl $12, %esp
+
+        pushl no
+        call free
+        addl $4, %esp
+        
+        movl tamanho_lista, %eax
+        decl %eax
+        movl %eax, tamanho_lista # tamanho_lista -= 1
+        
+        pushl $txtRemocaoSucesso
+        call printf
+        addl $4, %esp
+
+        RET
+
 
 fim:
     pushl   $0
