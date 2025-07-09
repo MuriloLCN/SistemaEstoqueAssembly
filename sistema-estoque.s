@@ -772,6 +772,8 @@ pegar_dados_produto_input:
     call scanf
     addl $8, %esp
 
+    RET
+
 encontrar_produto_nome:
     movl $0, %eax
     movl %eax, no_anterior    # no_anterior = 0 (null)
@@ -920,8 +922,8 @@ insercao_produto:
 
         call carregar_dados_no
 
-        pushl nome_novo_produto
-        pushl nome_produto
+        pushl $nome_novo_produto
+        pushl $nome_produto
         call strcmp
         addl $8, %esp   # eax = strcmp(nome_produto, nome_novo_produto)
 
@@ -998,6 +1000,7 @@ insercao_produto:
         movl %eax, no_anterior # no_anterior - no
 
         pushl $4
+        movl no, %eax
         addl $56, %eax
         pushl %eax
         pushl $no
@@ -1060,6 +1063,20 @@ consulta:
 
     _consulta_no_nao_nulo:
         call print_no
+        RET
+
+debug_print:
+    pushl valor_venda
+    pushl valor_compra
+    pushl quantidade_estoque
+    pushl $fornecedor
+    pushl data_validade
+    pushl lote_produto
+    pushl $nome_produto
+    pushl $txtPrintNo
+    call printf
+    addl $32, %esp
+    RET
 
 print_no:
     movl no, %eax
