@@ -845,7 +845,7 @@ insercao_produto:
     call memcpy
     addl $12, %esp
 
-    addl $4, %ecx  # ebx = novo_no + 24
+    addl $4, %ebx  # ebx = novo_no + 24
 
     # memcpy(novo_no + 24, &data_validade, 4)
     pushl $4
@@ -854,7 +854,7 @@ insercao_produto:
     call memcpy
     addl $12, %esp
 
-    addl $4, %ecx  # ebx = novo_no + 28
+    addl $4, %ebx  # ebx = novo_no + 28
 
     # memcpy(novo_no + 28, fornecedor, 16)
     pushl $16
