@@ -50,7 +50,7 @@
 
     # strings da função que recebe o ano 
     txtDigiteData:      .asciz  "\nDigite a data atual no formato yyyymmdd (Ex.: 20250612): "
-    txtMostraData:      .asciz  "Data atual: %d\n"
+    txtMostraData:      .asciz  "\nData atual: %d\n"
     txtConfirmaData:    .asciz  "\nConfirma a data [%d]? (s/n) "
     respostaChar:       .byte   's'
 
@@ -85,23 +85,23 @@
 
     # strings da função de print_no
     txtPrintNulo:       .asciz  "\nNó nulo"
-    txtPrintNo:         .asciz  "\nProduto: %s | Lote: %d, data de validade: %d, fornecedor: %s, quantidade no estoque: %d, valor de compra: %f, valor de venda: %f, tipo: "
-    txtPrintHigiene:    .asciz  "Higiene"  
-    txtPrintLimpeza:    .asciz  "Limpeza"  
-    txtPrintPereciveis: .asciz  "Perecíveis"  
-    txtPrintNaoPereciv: .asciz  "Não-Perecíveis"  
-    txtPrintBebidas:    .asciz  "Bebidas"  
-    txtPrintPadaria:    .asciz  "Padaria"    
-    txtPrintAcougue:    .asciz  "Açougue"    
-    txtPrintCongelados: .asciz  "Congelados"    
-    txtPrintUtilidades: .asciz  "Utilidades"    
-    txtPrintEletrodom:  .asciz  "Eletrodom."    
-    txtPrintPetshop:    .asciz  "Petshop"    
-    txtPrintInfantis:   .asciz  "Infantis"    
-    txtPrintHortifruti: .asciz  "Hortifruti"    
-    txtPrintPapelaria:  .asciz  "Papelaria"    
-    txtPrintDoces:      .asciz  "Doces"
-    txtPrintOutros:     .asciz  "Outros"
+    txtPrintNo:         .asciz  "\nProduto:\t\t%s \nLote:\t\t\t%d \nData de validade:\t%d \nFornecedor:\t\t%s \nQuantidade no estoque:\t%d\nValor de compra:\t%d \nValor de venda:\t\t%d \nTipo:\t\t\t"
+    txtPrintHigiene:    .asciz  "Higiene\n"  
+    txtPrintLimpeza:    .asciz  "Limpeza\n"  
+    txtPrintPereciveis: .asciz  "Perecíveis\n"  
+    txtPrintNaoPereciv: .asciz  "Não-Perecíveis\n"  
+    txtPrintBebidas:    .asciz  "Bebidas\n"  
+    txtPrintPadaria:    .asciz  "Padaria\n"    
+    txtPrintAcougue:    .asciz  "Açougue\n"    
+    txtPrintCongelados: .asciz  "Congelados\n"    
+    txtPrintUtilidades: .asciz  "Utilidades\n"    
+    txtPrintEletrodom:  .asciz  "Eletrodom\n"    
+    txtPrintPetshop:    .asciz  "Petshop\n"    
+    txtPrintInfantis:   .asciz  "Infantis\n"    
+    txtPrintHortifruti: .asciz  "Hortifruti\n"    
+    txtPrintPapelaria:  .asciz  "Papelaria\n"    
+    txtPrintDoces:      .asciz  "Doces\n"
+    txtPrintOutros:     .asciz  "Outros\n"
 
     # strings da função de atualizacao_produto
     txtAtualizNomeProd: .asciz "\nInsira o nome do produto a ser alterado:\n>> "
@@ -115,7 +115,7 @@
 
 
     # strings do relatorio ordenado por nome
-    txtBannerOrdNome:   .asciz  "\n-----------------------\nProdutos ordenados por nome\n-----------------------"
+    txtBannerOrdNome:   .asciz  "\n----------------------------\nProdutos ordenados por nome\n----------------------------"
 
     # strings de formatação
     formatoSTR:     .asciz  "%s"
@@ -133,8 +133,8 @@
     quantidade_estoque:     .int    0
     op_menu:                .int    0
     resultado_comparacao:   .int    0
-    valor_compra:           .float  0.0
-    valor_venda:            .float  0.0
+    valor_compra:           .int    0
+    valor_venda:            .int    0
 
 .section .bss
     .lcomm  nome_produto,   16  # 16 caracteres
@@ -403,6 +403,7 @@ menu:
             cmpl    op_menu, %eax       
             jne     _if_rel_validade        # se os valores forem diferentes, passa para verificação se o usuário optou pela ordenação por data de validade
             # chama a função para mostrar o relatório ordenado pelos nomes
+            call    relatorio_ordenado_nome
             jmp     menu
         
         _if_rel_validade:
