@@ -368,6 +368,7 @@ menu:
             cmpl    op_menu, %eax
             jne     _if_fin_venda   # se os valores forem diferentes, passa para a verificação se o usuário escolheu o total de venda
             # chama a função de consulta do total de compras
+            call consulta_financeira
             jmp     menu
         
         _if_fin_venda:
@@ -375,6 +376,7 @@ menu:
             cmpl    op_menu, %eax            
             jne     _if_fin_lucro   # se os valores forem diferentes, passa para a verificação se o usuário escolheu o total de lucro
             #  chama a função de consulta do total de vendas
+            call consulta_financeira
             jmp     menu
         
         _if_fin_lucro:
@@ -382,6 +384,7 @@ menu:
             cmpl    op_menu, %eax            
             jne     _if_fin_perdido   # se os valores forem diferentes, passa para a verificação se o usuário escolheu  o capital perdido
             # chama a função da consulta de lucro total
+            call consulta_financeira
             jmp     menu
         
         _if_fin_perdido:
@@ -389,6 +392,7 @@ menu:
             cmpl    op_menu, %eax            
             jne     _if_op_invalida   # se o valor digitado pelo usuário não corresponder a nenhuma consulta financeira
             # chama a função de consulta de capital perdido
+            call consulta_financeira
             jmp     menu
     
     _if_gravacao_reg:
@@ -1433,45 +1437,24 @@ _consulta_financeira_loop:
 
     call carregar_dados_no
 
-    # Cálculo Total de Compra ou Lucro
-    movl op_menu, %eax
-    cmpl $0, %eax
-    je _calc_compra
-    cmpl $2, %eax
-    je _calc_compra
-    jmp _check_venda
-
-_calc_compra:
     movl quantidade_estoque, %eax
-    imull valor_compra, %eax
+    movl valor_compra, %ebx
+    mull %ebx
     addl %eax, total_compra
-
-_check_venda:
-    # Cálculo Total de Venda ou Lucro
-    movl op_menu, %eax
-    cmpl $1, %eax
-    je _calc_venda
-    cmpl $2, %eax
-    je _calc_venda
-    jmp _check_perda
-
-_calc_venda:
+    
     movl quantidade_estoque, %eax
-    imull valor_venda, %eax
+    movl valor_venda, %ebx
+    mull %ebx
     addl %eax, total_venda
-
-_check_perda:
-    # Cálculo Capital Perdido
-    movl op_menu, %eax
-    cmpl $3, %eax
-    jne _consulta_financeira_proximo_no
-
+    
     movl data_validade, %eax
-    cmpl data_atual, %eax
+    movl data_atual, %ebx
+    cmpl %ebx, %eax
     jge _consulta_financeira_proximo_no # se data_validade >= data_atual, não está vencido
 
     movl quantidade_estoque, %eax
-    imull valor_compra, %eax
+    movl valor_compra, %ebx
+    mull %ebx
     addl %eax, capital_perdido
 
 _consulta_financeira_proximo_no:
