@@ -116,6 +116,21 @@
 
     # strings do relatorio ordenado por nome
     txtBannerOrdNome:   .asciz  "\n----------------------------\nProdutos ordenados por nome\n----------------------------"
+    
+    # strings da consulta financeira
+    txtFinNenhumProd:   .asciz  "\nNenhum produto no estoque para calcular.\n"
+    txtFinBanner:       .asciz  "\n--- Resultado da Consulta Financeira ---\n"
+    txtFinResCompra:    .asciz  "Total de Compra (custo do estoque): R$ %d\n"
+    txtFinResVenda:     .asciz  "Total de Venda (potencial de receita): R$ %d\n"
+    txtFinResLucro:     .asciz  "Lucro Total (potencial): R$ %d\n"
+    txtFinResPerda:     .asciz  "Capital Perdido (produtos vencidos): R$ %d\n"
+
+    # strings dos relatorios
+    txtNenhumProdRel:   .asciz  "\nNenhum produto no estoque para exibir.\n"
+    txtMaxItensExcedido:.asciz  "\nO numero de itens excede o maximo para ordenacao (%d).\n"
+    txtBannerOrdValidade: .asciz "\n-------------------------------------\nProdutos ordenados por data de validade\n-------------------------------------\n"
+    txtBannerOrdEstoque: .asciz "\n----------------------------------------\nProdutos ordenados por quantidade em estoque\n----------------------------------------\n"
+
 
     # strings de formatação
     formatoSTR:     .asciz  "%s"
@@ -135,6 +150,7 @@
     resultado_comparacao:   .int    0
     valor_compra:           .int    0
     valor_venda:            .int    0
+    max_itens:              .int    256
 
 .section .bss
     .lcomm  nome_produto,   16  # 16 caracteres
@@ -151,6 +167,20 @@
     .lcomm  nome_novo_produto, 16
 
     .lcomm  lixo,           4
+
+    # variaveis da consulta financeira
+    .lcomm  total_compra,   4
+    .lcomm  total_venda,    4
+    .lcomm  capital_perdido,4
+
+    # variaveis para ordenacao
+    .lcomm  nos_para_ordenar, 1024  # MAX_ITENS (256) * 4 bytes
+    .lcomm  i_loop,         4
+    .lcomm  j_loop,         4
+    .lcomm  temp_no,        4
+    .lcomm  valor_1,        4
+    .lcomm  valor_2,        4
+
 
 .section .text
 .globl main
@@ -402,7 +432,6 @@ menu:
             movl    $0, %eax
             cmpl    op_menu, %eax       
             jne     _if_rel_validade        # se os valores forem diferentes, passa para verificação se o usuário optou pela ordenação por data de validade
-            # chama a função para mostrar o relatório ordenado pelos nomes
             call    relatorio_ordenado_nome
             jmp     menu
         
@@ -1378,7 +1407,236 @@ remocao_produto_nome:
 
         RET
 
+consulta_financeira:
+    # Zera as variáveis de total
+    movl $0, total_compra
+    movl $0, total_venda
+    movl $0, capital_perdido
 
+    # Verifica se a lista está vazia
+    movl inicio_lista, %eax
+    cmpl $0, %eax
+    jne _consulta_financeira_nao_vazia
+    
+    pushl $txtFinNenhumProd
+    call printf
+    addl $4, %esp
+    RET
+
+_consulta_financeira_nao_vazia:
+    movl inicio_lista, %eax
+    movl %eax, no
+
+_consulta_financeira_loop:
+    cmpl $0, no
+    je _consulta_financeira_fim_loop
+
+    call carregar_dados_no
+
+    # Cálculo Total de Compra ou Lucro
+    movl op_menu, %eax
+    cmpl $0, %eax
+    je _calc_compra
+    cmpl $2, %eax
+    je _calc_compra
+    jmp _check_venda
+
+_calc_compra:
+    movl quantidade_estoque, %eax
+    imull valor_compra, %eax
+    addl %eax, total_compra
+
+_check_venda:
+    # Cálculo Total de Venda ou Lucro
+    movl op_menu, %eax
+    cmpl $1, %eax
+    je _calc_venda
+    cmpl $2, %eax
+    je _calc_venda
+    jmp _check_perda
+
+_calc_venda:
+    movl quantidade_estoque, %eax
+    imull valor_venda, %eax
+    addl %eax, total_venda
+
+_check_perda:
+    # Cálculo Capital Perdido
+    movl op_menu, %eax
+    cmpl $3, %eax
+    jne _consulta_financeira_proximo_no
+
+    movl data_validade, %eax
+    cmpl data_atual, %eax
+    jge _consulta_financeira_proximo_no # se data_validade >= data_atual, não está vencido
+
+    movl quantidade_estoque, %eax
+    imull valor_compra, %eax
+    addl %eax, capital_perdido
+
+_consulta_financeira_proximo_no:
+    movl ponteiro_prox, %eax
+    movl %eax, no
+    jmp _consulta_financeira_loop
+
+_consulta_financeira_fim_loop:
+    pushl $txtFinBanner
+    call printf
+    addl $4, %esp
+
+    movl op_menu, %eax
+    cmpl $0, %eax
+    je _print_total_compra
+    cmpl $1, %eax
+    je _print_total_venda
+    cmpl $2, %eax
+    je _print_lucro
+    cmpl $3, %eax
+    je _print_capital_perdido
+    jmp _consulta_financeira_fim
+
+_print_total_compra:
+    pushl total_compra
+    pushl $txtFinResCompra
+    call printf
+    addl $8, %esp
+    jmp _consulta_financeira_fim
+
+_print_total_venda:
+    pushl total_venda
+    pushl $txtFinResVenda
+    call printf
+    addl $8, %esp
+    jmp _consulta_financeira_fim
+
+_print_lucro:
+    movl total_venda, %eax
+    subl total_compra, %eax
+    pushl %eax
+    pushl $txtFinResLucro
+    call printf
+    addl $8, %esp
+    jmp _consulta_financeira_fim
+
+_print_capital_perdido:
+    pushl capital_perdido
+    pushl $txtFinResPerda
+    call printf
+    addl $8, %esp
+
+_consulta_financeira_fim:
+    RET
+
+relatorio_ordenado_quantidade_estoque:
+    # Checar se a lista está vazia
+    cmpl $0, tamanho_lista
+    jne _rel_qtd_nao_vazio
+    pushl $txtNenhumProdRel
+    call printf
+    addl $4, %esp
+    RET
+_rel_qtd_nao_vazio:
+    # Checar se excede o máximo
+    movl tamanho_lista, %eax
+    movl max_itens, %ebx
+    cmpl %eax, %ebx
+    jle _rel_qtd_ok
+    pushl max_itens
+    pushl $txtMaxItensExcedido
+    call printf
+    addl $8, %esp
+    RET
+_rel_qtd_ok:
+    movl inicio_lista, %eax
+    movl %eax, no
+    movl $0, %ecx
+_rel_qtd_preencher_loop:
+    cmpl tamanho_lista, %ecx
+    je _rel_qtd_preencher_fim
+    
+    movl no, %eax
+    movl %eax, nos_para_ordenar(,%ecx,4)
+
+    movl ponteiro_prox, %eax
+    movl %eax, no
+    
+    incl %ecx
+    jmp _rel_qtd_preencher_loop
+_rel_qtd_preencher_fim:
+
+    # 2. Bubble Sort
+    movl $0, i_loop
+_rel_qtd_outer_loop:
+    movl tamanho_lista, %eax
+    decl %eax
+    cmpl %eax, i_loop
+    jge _rel_qtd_sort_fim
+
+    movl $0, j_loop
+_rel_qtd_inner_loop:
+    movl tamanho_lista, %eax
+    subl i_loop, %eax
+    decl %eax
+    cmpl %eax, j_loop
+    jge _rel_qtd_inner_loop_fim
+
+    # Pega ponteiros
+    movl j_loop, %ecx
+    movl nos_para_ordenar(,%ecx,4), %eax # ptr1
+    incl %ecx
+    movl nos_para_ordenar(,%ecx,4), %ebx # ptr2
+
+    # Extrai valores (quantidade, offset 44)
+    movl 44(%eax), %esi
+    movl 44(%ebx), %edi
+    
+    cmpl %edi, %esi # valor1 > valor2 ?
+    jle _rel_qtd_no_swap
+
+    # Troca ponteiros
+    movl j_loop, %ecx
+    movl %eax, temp_no
+    movl %ebx, %eax
+    movl %eax, nos_para_ordenar(,%ecx,4)
+    incl %ecx
+    movl temp_no, %eax
+    movl %eax, nos_para_ordenar(,%ecx,4)
+
+_rel_qtd_no_swap:
+    incl j_loop
+    jmp _rel_qtd_inner_loop
+_rel_qtd_inner_loop_fim:
+    incl i_loop
+    jmp _rel_qtd_outer_loop
+_rel_qtd_sort_fim:
+
+    # 3. Imprimir
+    pushl $txtBannerOrdEstoque
+    call printf
+    addl $4, %esp
+
+    movl $0, i_loop
+_rel_qtd_print_loop:
+    # Compara i_loop com tamanho_lista
+    movl i_loop, %ecx          # Carrega i_loop em um registrador
+    movl tamanho_lista, %edx   # Carrega tamanho_lista em outro registrador
+    cmpl %edx, %ecx            # Compara os dois (ecx - edx)
+
+    # Se i_loop for maior ou igual, o laço terminou. Salta para o fim.
+    jge _rel_qtd_print_fim     
+
+    # Corpo do laço (só executa se i_loop < tamanho_lista)
+    # movl i_loop, %ecx # ECX já contém o valor de i_loop
+    movl nos_para_ordenar(,%ecx,4), %eax
+    movl %eax, no
+    call print_no
+
+    # Incrementa o contador e volta para o início para a próxima verificação
+    incl i_loop
+    jmp _rel_qtd_print_loop
+
+_rel_qtd_print_fim:
+    RET # Retorna da função
 fim:
     pushl   $0
     call    exit
