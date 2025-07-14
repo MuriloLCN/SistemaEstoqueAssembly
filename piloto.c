@@ -89,9 +89,21 @@ char* inicio_lista;
 int op_menu;
 FILE *arquivo_ptr;
 char nome_aux[16];
+float total_compra = 0.0;
+float total_venda = 0.0;
+float capital_perdido = 0.0;
+int op_consulta;
 
 char* no_anterior;
 char* novo_no;
+
+// Variáveis globais para ordenação, para facilitar a portabilidade para Assembly
+#define MAX_ITENS 256 // Define um máximo de itens para os relatórios ordenados
+char* nos_para_ordenar[MAX_ITENS];
+int i_loop, j_loop;
+char* temp_no;
+int valor_1, valor_2;
+
 
 /*
     Produtos:
@@ -448,8 +460,63 @@ void consulta()
 
 void consulta_financeira()
 {
-    // Talvez compense ter apenas um laço que some o total de compra, total de venda, lucro total e capital perdido
-    // Aí no final só faz o display do que a pessoa escolher, já que ele pede a escolha
+
+    printf("\nDeseja consultar qual das opcoes abaixo?\n");
+    printf("[0] - Total de compra\n");
+    printf("[1] - Total de venda\n");
+    printf("[2] - Lucro total\n");
+    printf("[3] - Capital perdido\n");
+    printf(">> ");
+    scanf("%d", &op_consulta);
+
+    if (inicio_lista == NULL)
+    {
+        printf("\nNenhum produto no estoque para calcular.\n");
+        return;
+    }
+
+    no = inicio_lista;
+    while (no != NULL)
+    {
+        carregar_dados_no();
+
+        if (op_consulta == 0 || op_consulta == 2) { // Total de Compra ou Lucro
+            total_compra += (quantidade_estoque * valor_compra);
+        }
+        if (op_consulta == 1 || op_consulta == 2) { // Total de Venda ou Lucro
+            total_venda += (quantidade_estoque * valor_venda);
+        }
+        if (op_consulta == 3) { // Capital Perdido
+            if (data_validade < data_atual)
+            {
+                capital_perdido += (quantidade_estoque * valor_compra);
+            }
+        }
+        
+        memcpy(&no, no + 56, 4); // Avança para o próximo nó
+    }
+
+    printf("\n--- Resultado da Consulta Financeira ---\n");
+    if (op_consulta == 0)
+    {
+        printf("Total de Compra (custo do estoque): R$ %.2f\n", total_compra);
+    }
+    else if (op_consulta == 1)
+    {
+        printf("Total de Venda (potencial de receita): R$ %.2f\n", total_venda);
+    }
+    else if (op_consulta == 2)
+    {
+        printf("Lucro Total (potencial): R$ %.2f\n", total_venda - total_compra);
+    }
+    else if (op_consulta == 3)
+    {
+        printf("Capital Perdido (produtos vencidos): R$ %.2f\n", capital_perdido);
+    }
+    else
+    {
+        printf("Opcao invalida!\n");
+    }
 }
 
 void gravar_no_disco()
@@ -466,7 +533,7 @@ void gravar_no_disco()
 
     char *indice_atual_lista = inicio_lista;
     for (int i = 0; i < tamanho_lista; i++)
-    {   
+    {
         // só uma segurança a mais
         if (indice_atual_lista == NULL)
             break;
@@ -527,7 +594,7 @@ void relatorio_ordenado_nome()
     // Apenas ir printando por ordem da lista :D
     no = inicio_lista;
     
-    printf("\n-----------------------\nProdutos ordenados por nome\n-----------------------");
+    printf("\n-----------------------\nProdutos ordenados por nome\n-----------------------\n");
     while (no != 0)
     {
         print_no();
@@ -537,28 +604,99 @@ void relatorio_ordenado_nome()
 
 void relatorio_ordenado_data_validade()
 {
-    // montar uma lista de n inteiros, um pra cada elemento da lista, inicializados com 0
+    if (tamanho_lista == 0)
+    {
+        printf("\nNenhum produto no estoque para exibir.\n");
+        return;
+    }
+    if (tamanho_lista > MAX_ITENS)
+    {
+        printf("\nO numero de itens excede o maximo para ordenacao (%d).\n", MAX_ITENS);
+        return;
+    }
 
-    // malloc e dps um for
+    // 1. Preencher o array global com os ponteiros da lista encadeada
+    no = inicio_lista;
+    i_loop = 0;
+    while (no != NULL) {
+        nos_para_ordenar[i_loop++] = no;
+        memcpy(&no, no + 56, 4); // no = no->prox
+    }
 
-    // variavel booleana: flag printou elemento = true
+    // 2. Ordenar o array usando Bubble Sort com variáveis globais
+    for (i_loop = 0; i_loop < tamanho_lista - 1; i_loop++) {
+        for (j_loop = 0; j_loop < tamanho_lista - i_loop - 1; j_loop++) {
+            // Extrai a data de validade de cada nó (offset 24)
+            memcpy(&valor_1, nos_para_ordenar[j_loop] + 24, 4);
+            memcpy(&valor_2, nos_para_ordenar[j_loop+1] + 24, 4);
 
-    // enquanto printou elemento:
+            if (valor_1 > valor_2) {
+                // Troca os ponteiros no array
+                temp_no = nos_para_ordenar[j_loop];
+                nos_para_ordenar[j_loop] = nos_para_ordenar[j_loop+1];
+                nos_para_ordenar[j_loop+1] = temp_no;
+            }
+        }
+    }
 
-    // indice maior = -1
-
-    // percorrer e ir guardando o maior nó e o seu índice correspondente, com base na validade [Pular os que tem lista[k]=1!!]
-
-    // se o indice for igual a -1, printou_elemento = false
-
-    // se n, printar o elemento, setar lista[indice_maior] = 1
-
-    // free no malloc
+    // 3. Imprimir os resultados a partir do array ordenado
+    printf("\n-------------------------------------\n");
+    printf("Produtos ordenados por data de validade\n");
+    printf("-------------------------------------\n");
+    for (i_loop = 0; i_loop < tamanho_lista; i_loop++) {
+        no = nos_para_ordenar[i_loop];
+        print_no();
+    }
+    printf("\n");
 }
+
 
 void relatorio_ordenado_quantidade_estoque()
 {
-    // mesma coisa que o anterior mas com base na quantidade estoque
+    if (tamanho_lista == 0)
+    {
+        printf("\nNenhum produto no estoque para exibir.\n");
+        return;
+    }
+    if (tamanho_lista > MAX_ITENS)
+    {
+        printf("\nO numero de itens excede o maximo para ordenacao (%d).\n", MAX_ITENS);
+        return;
+    }
+
+    // 1. Preencher o array global com os ponteiros da lista encadeada
+    no = inicio_lista;
+    i_loop = 0;
+    while (no != NULL) {
+        nos_para_ordenar[i_loop++] = no;
+        memcpy(&no, no + 56, 4); // no = no->prox
+    }
+
+    // 2. Ordenar o array usando Bubble Sort com variáveis globais
+    for (i_loop = 0; i_loop < tamanho_lista - 1; i_loop++) {
+        for (j_loop = 0; j_loop < tamanho_lista - i_loop - 1; j_loop++) {
+            // Extrai a quantidade do estoque de cada nó (offset 44)
+            memcpy(&valor_1, nos_para_ordenar[j_loop] + 44, 4);
+            memcpy(&valor_2, nos_para_ordenar[j_loop+1] + 44, 4);
+
+            if (valor_1 > valor_2) {
+                // Troca os ponteiros no array
+                temp_no = nos_para_ordenar[j_loop];
+                nos_para_ordenar[j_loop] = nos_para_ordenar[j_loop+1];
+                nos_para_ordenar[j_loop+1] = temp_no;
+            }
+        }
+    }
+
+    // 3. Imprimir os resultados a partir do array ordenado
+    printf("\n----------------------------------------\n");
+    printf("Produtos ordenados por quantidade em estoque\n");
+    printf("----------------------------------------\n");
+    for (i_loop = 0; i_loop < tamanho_lista; i_loop++) {
+        no = nos_para_ordenar[i_loop];
+        print_no();
+    }
+    printf("\n");
 }
 
 void mostrar_banner()
@@ -662,38 +800,7 @@ void menu()
 
     else if (op_menu == 4)
     {
-        printf("\nDeseja consultar qual das opcoes abaixo?\n");
-        printf("[0] - Total de compra\n");
-        printf("[1] - Total de venda\n");
-        printf("[2] - Lucro total\n");
-        printf("[3] - Capital perdido\n");
-        scanf("%d", &op_menu);
-
-        if (op_menu == 0)
-        {
-            // chama a função de consulta de total de compra
-        }
-
-        else if (op_menu == 1)
-        {
-            // chama a função de consulta de total de venda
-        }
-
-        else if (op_menu == 2)
-        {
-            // chama a função de consulta de lucro total
-        }
-
-        else if (op_menu == 3)
-        {
-            // chama a função de consulta de capital perdido
-        }
-
-        else
-        {
-            printf("Opcao inválida!\n");
-            menu(); // Chama o menu novamente
-        }
+        consulta_financeira();
     }
 
     else if (op_menu == 5)
@@ -721,12 +828,12 @@ void menu()
 
         else if (op_menu == 1)
         {
-            // chama a função de relatório ordenado por data de validade
+            relatorio_ordenado_data_validade();
         }
 
         else if (op_menu == 2)
         {
-            // chama a função de relatório ordenado por quantidade de estoque
+            relatorio_ordenado_quantidade_estoque();
         }
         
         else
