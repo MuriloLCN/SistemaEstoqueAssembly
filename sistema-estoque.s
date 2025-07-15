@@ -452,6 +452,8 @@ menu:
             cmpl    op_menu, %eax       
             jne     _if_op_invalida         # se os valores forem diferentes, nenhuma opção válida foi escolhida
             # chama a função para mostrar o relatório ordenado pela quantidade de estoque
+            call relatorio_ordenado_quantidade_estoque
+            jmp     menu
 
     _if_sair:
         movl    $8, %eax
@@ -1534,7 +1536,7 @@ _rel_qtd_nao_vazio:
     movl tamanho_lista, %eax
     movl max_itens, %ebx
     cmpl %eax, %ebx
-    jle _rel_qtd_ok
+    jge _rel_qtd_ok
     pushl max_itens
     pushl $txtMaxItensExcedido
     call printf
@@ -1543,18 +1545,33 @@ _rel_qtd_nao_vazio:
 _rel_qtd_ok:
     movl inicio_lista, %eax
     movl %eax, no
-    movl $0, %ecx
-_rel_qtd_preencher_loop:
-    cmpl tamanho_lista, %ecx
-    je _rel_qtd_preencher_fim
-    
-    movl no, %eax
-    movl %eax, nos_para_ordenar(,%ecx,4)
 
-    movl ponteiro_prox, %eax
-    movl %eax, no
-    
-    incl %ecx
+    movl $0, i_loop
+
+_rel_qtd_preencher_loop:
+    movl no, %eax
+    cmpl $0, %eax
+    je _rel_qtd_preencher_fim
+
+    movl i_loop, %edx
+    sall $2, %edx  # multiplicando por 4 bytes
+    addl $nos_para_ordenar, %edx  # edx = &(nos_para_ordenar[i_loop])
+
+    movl no, %ebx
+    movl %ebx, (%edx)
+
+    pushl $4
+    movl no, %edx
+    addl $56, %edx
+    pushl %edx
+    pushl $no
+    call memcpy
+    addl $12, %esp
+
+    movl i_loop, %eax
+    incl %eax
+    movl %eax, i_loop
+
     jmp _rel_qtd_preencher_loop
 _rel_qtd_preencher_fim:
 
@@ -1576,9 +1593,12 @@ _rel_qtd_inner_loop:
 
     # Pega ponteiros
     movl j_loop, %ecx
-    movl nos_para_ordenar(,%ecx,4), %eax # ptr1
-    incl %ecx
-    movl nos_para_ordenar(,%ecx,4), %ebx # ptr2
+    movl %ecx, %edx
+    sall $2, %edx
+    addl $nos_para_ordenar, %edx
+    movl (%edx), %eax # ptr1
+    addl $4, %edx
+    movl (%edx), %ebx # ptr2
 
     # Extrai valores (quantidade, offset 44)
     movl 44(%eax), %esi
@@ -1621,7 +1641,10 @@ _rel_qtd_print_loop:
 
     # Corpo do laço (só executa se i_loop < tamanho_lista)
     # movl i_loop, %ecx # ECX já contém o valor de i_loop
-    movl nos_para_ordenar(,%ecx,4), %eax
+    movl %ecx, %edx
+    sall $2, %edx
+    addl $nos_para_ordenar, %edx
+    movl (%edx), %eax
     movl %eax, no
     call print_no
 
