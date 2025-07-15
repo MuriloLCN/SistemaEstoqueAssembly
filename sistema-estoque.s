@@ -165,6 +165,7 @@
     .lcomm  indice_atual_lista, 4
 
     .lcomm  nome_novo_produto, 16
+    .lcomm  lote_novo_produto, 4
 
     .lcomm  lixo,           4
 
@@ -945,6 +946,9 @@ insercao_produto:
     call strcpy
     addl $8, %esp
 
+    movl lote_produto, %eax
+    movl %eax, lote_novo_produto
+
     # Iniciando busca pelo local de inserção na lista
 
     movl $0, %eax
@@ -966,17 +970,24 @@ insercao_produto:
         addl $8, %esp   # eax = strcmp(nome_produto, nome_novo_produto)
 
         movl %eax, resultado_comparacao
-
         cmpl $0, %eax
+
         je _insercao_produto_nome_duplicado
         jmp _insercao_produto_nome_nao_duplicado
         _insercao_produto_nome_duplicado:
+
+            movl lote_produto, %eax
+            movl lote_novo_produto, %ebx
+            cmpl %eax, %ebx
+            jne _insercao_produto_nome_nao_duplicado
+
             pushl $txtNomeDuplicado
             call printf
             pushl novo_no
             call free
             addl $8, %esp
             RET
+
         _insercao_produto_nome_nao_duplicado:
         movl resultado_comparacao, %eax
         cmpl $0, %eax
