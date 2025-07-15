@@ -151,6 +151,7 @@
     valor_compra:           .int    0
     valor_venda:            .int    0
     max_itens:              .int    256
+    op_ordenacao:           .int    0
 
 .section .bss
     .lcomm  nome_produto,   16  # 16 caracteres
@@ -445,6 +446,8 @@ menu:
             cmpl    op_menu, %eax       
             jne     _if_rel_estoque         # se os valores forem diferentes, passa para verificação se o usuário optou pela ordenação pela quantidade de estoque
             # chama a função para mostrar o relatório ordenado pelas datas de validade
+            movl $0, op_ordenacao
+            call relatorio_ordenado_criterio
             jmp     menu
         
         _if_rel_estoque:
@@ -452,7 +455,8 @@ menu:
             cmpl    op_menu, %eax       
             jne     _if_op_invalida         # se os valores forem diferentes, nenhuma opção válida foi escolhida
             # chama a função para mostrar o relatório ordenado pela quantidade de estoque
-            call relatorio_ordenado_quantidade_estoque
+            movl $1, op_ordenacao
+            call relatorio_ordenado_criterio
             jmp     menu
 
     _if_sair:
@@ -1523,15 +1527,15 @@ _print_capital_perdido:
 _consulta_financeira_fim:
     RET
 
-relatorio_ordenado_quantidade_estoque:
+relatorio_ordenado_criterio:
     # Checar se a lista está vazia
     cmpl $0, tamanho_lista
-    jne _rel_qtd_nao_vazio
+    jne _rel_ord_nao_vazio
     pushl $txtNenhumProdRel
     call printf
     addl $4, %esp
     RET
-_rel_qtd_nao_vazio:
+_rel_ord_nao_vazio:
     # Checar se excede o máximo
     movl tamanho_lista, %eax
     movl max_itens, %ebx
@@ -1548,10 +1552,10 @@ _rel_qtd_ok:
 
     movl $0, i_loop
 
-_rel_qtd_preencher_loop:
+_rel_ord_preencher_loop:
     movl no, %eax
     cmpl $0, %eax
-    je _rel_qtd_preencher_fim
+    je _rel_ord_preencher_fim
 
     movl i_loop, %edx
     sall $2, %edx  # multiplicando por 4 bytes
@@ -1572,24 +1576,24 @@ _rel_qtd_preencher_loop:
     incl %eax
     movl %eax, i_loop
 
-    jmp _rel_qtd_preencher_loop
-_rel_qtd_preencher_fim:
+    jmp _rel_ord_preencher_loop
+_rel_ord_preencher_fim:
 
     # 2. Bubble Sort
     movl $0, i_loop
-_rel_qtd_outer_loop:
+_rel_ord_outer_loop:
     movl tamanho_lista, %eax
     decl %eax
     cmpl %eax, i_loop
-    jge _rel_qtd_sort_fim
+    jge _rel_ord_sort_fim
 
     movl $0, j_loop
-_rel_qtd_inner_loop:
+_rel_ord_inner_loop:
     movl tamanho_lista, %eax
     subl i_loop, %eax
     decl %eax
     cmpl %eax, j_loop
-    jge _rel_qtd_inner_loop_fim
+    jge _rel_ord_inner_loop_fim
 
     # Pega ponteiros
     movl j_loop, %ecx
@@ -1601,11 +1605,25 @@ _rel_qtd_inner_loop:
     movl (%edx), %ebx # ptr2
 
     # Extrai valores (quantidade, offset 44)
+
+    movl op_ordenacao, %edx
+    cmpl $0, %edx
+    je _rel_ord_validade
+    jne _rel_ord_estoque
+
+    _rel_ord_validade:
+    movl 24(%eax), %esi
+    movl 24(%ebx), %edi
+    jmp _rel_ord_cont
+    
+    _rel_ord_estoque:
     movl 44(%eax), %esi
     movl 44(%ebx), %edi
-    
+    jmp _rel_ord_cont
+
+    _rel_ord_cont:
     cmpl %edi, %esi # valor1 > valor2 ?
-    jle _rel_qtd_no_swap
+    jle _rel_ord_no_swap
 
     # Troca ponteiros
     movl j_loop, %ecx
@@ -1616,13 +1634,13 @@ _rel_qtd_inner_loop:
     movl temp_no, %eax
     movl %eax, nos_para_ordenar(,%ecx,4)
 
-_rel_qtd_no_swap:
+_rel_ord_no_swap:
     incl j_loop
-    jmp _rel_qtd_inner_loop
-_rel_qtd_inner_loop_fim:
+    jmp _rel_ord_inner_loop
+_rel_ord_inner_loop_fim:
     incl i_loop
-    jmp _rel_qtd_outer_loop
-_rel_qtd_sort_fim:
+    jmp _rel_ord_outer_loop
+_rel_ord_sort_fim:
 
     # 3. Imprimir
     pushl $txtBannerOrdEstoque
@@ -1630,14 +1648,14 @@ _rel_qtd_sort_fim:
     addl $4, %esp
 
     movl $0, i_loop
-_rel_qtd_print_loop:
+_rel_ord_print_loop:
     # Compara i_loop com tamanho_lista
     movl i_loop, %ecx          # Carrega i_loop em um registrador
     movl tamanho_lista, %edx   # Carrega tamanho_lista em outro registrador
     cmpl %edx, %ecx            # Compara os dois (ecx - edx)
 
     # Se i_loop for maior ou igual, o laço terminou. Salta para o fim.
-    jge _rel_qtd_print_fim     
+    jge _rel_ord_print_fim     
 
     # Corpo do laço (só executa se i_loop < tamanho_lista)
     # movl i_loop, %ecx # ECX já contém o valor de i_loop
@@ -1650,9 +1668,9 @@ _rel_qtd_print_loop:
 
     # Incrementa o contador e volta para o início para a próxima verificação
     incl i_loop
-    jmp _rel_qtd_print_loop
+    jmp _rel_ord_print_loop
 
-_rel_qtd_print_fim:
+_rel_ord_print_fim:
     RET # Retorna da função
 fim:
     pushl   $0
