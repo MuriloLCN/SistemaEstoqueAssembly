@@ -689,12 +689,32 @@ remocao_produto_validade:
         # espaço para eventualmente adicionar mais alguma informação
         RET    
 
+copiar_string:
+    # assumindo que a origem está no %eax e o destino no %ebx
+    movl    (%eax), %ecx
+    movl    %ecx, (%ebx)
+
+    addl    $4, %eax
+    addl    $4, %ebx
+    movl    (%eax), %ecx
+    movl    %ecx, (%ebx)
+
+    addl    $4, %eax
+    addl    $4, %ebx
+    movl    (%eax), %ecx
+    movl    %ecx, (%ebx)
+
+    addl    $4, %eax
+    addl    $4, %ebx
+    movl    (%eax), %ecx
+    movl    %ecx, (%ebx)
+
+    RET
+
 carregar_dados_no:
-    pushl   $16
-    pushl   no
-    pushl   $nome_produto
-    call    memcpy                  # copiando o nome do produto para a variável de trabalho nome_produto
-    addl    $12, %esp
+    movl    no, %eax
+    movl    $nome_produto, %ebx
+    call    copiar_string
 
     movl    no, %eax
     addl    $16, %eax
@@ -710,12 +730,8 @@ carregar_dados_no:
     movl    %ebx, data_validade
 
     addl    $4, %eax
-    pushl   $16
-    pushl   %eax
-    pushl   $fornecedor
-    call    memcpy                  # copiando a string do nome do fornecedor (usamos memcpy por se tratar de 16 bytes)
-
-    addl    $12, %esp               # desempilhando os últimos pushl's
+    movl    $fornecedor, %ebx
+    call    copiar_string
 
     movl    no, %eax
     addl    $44, %eax                   # offset da quantidade de estoque
@@ -844,13 +860,16 @@ encontrar_produto_nome:
         movl no, %eax
         movl %eax, no_anterior
 
-        pushl $4
+        # pushl $4
         movl $56, %eax
         addl no, %eax
-        pushl %eax
-        pushl $no
-        call memcpy        # memcpy(&no, no + 56, 4)
-        addl $12, %esp
+        movl    (%eax), %ecx
+        movl    %ecx, no
+
+        # pushl %eax
+        # pushl $no
+        # call memcpy        # memcpy(&no, no + 56, 4)
+        # addl $12, %esp
         
         jmp _encontrar_produto_nome_inicio_laco
 
@@ -868,83 +887,110 @@ insercao_produto:
     # copiando informações para o novo nó ...
 
     # memcpy(novo_no + 0, nome_produto, 16)
-    pushl $16
-    pushl $nome_produto
-    pushl %ebx
-    call memcpy
-    addl $12, %esp
+    # pushl $16
+    # pushl $nome_produto
+    # pushl %ebx
+    # call memcpy
+    # addl $12, %esp
 
-    addl $16, %ebx   # ebx = novo_no + 16
+    movl    $nome_produto, %eax
+    call    copiar_string
+
+    addl $4, %ebx   # ebx = novo_no + 16
 
     # memcpy(novo_no + 16, &lote_produto, 4)
-    pushl $4
-    pushl $lote_produto
-    pushl %ebx
-    call memcpy
-    addl $12, %esp
+    # pushl $4
+    # pushl $lote_produto
+    # pushl %ebx
+    # call memcpy
+    # addl $12, %esp
+
+    movl    lote_produto, %ecx
+    movl    %ecx, (%ebx)
 
     addl $4, %ebx   # ebx = novo_no + 20
     
     # memcpy(novo_no + 20, &tipo_produto, 4)
-    pushl $4
-    pushl $tipo_produto
-    pushl %ebx
-    call memcpy
-    addl $12, %esp
+    # pushl $4
+    # pushl $tipo_produto
+    # pushl %ebx
+    # call memcpy
+    # addl $12, %esp
+
+    movl tipo_produto, %ecx
+    movl    %ecx, (%ebx)
 
     addl $4, %ebx  # ebx = novo_no + 24
 
     # memcpy(novo_no + 24, &data_validade, 4)
-    pushl $4
-    pushl $data_validade
-    pushl %ebx
-    call memcpy
-    addl $12, %esp
+    # pushl $4
+    # pushl $data_validade
+    # pushl %ebx
+    # call memcpy
+    # addl $12, %esp
+
+    movl    data_validade, %ecx
+    movl    %ecx, (%ebx)
 
     addl $4, %ebx  # ebx = novo_no + 28
 
     # memcpy(novo_no + 28, fornecedor, 16)
-    pushl $16
-    pushl $fornecedor
-    pushl %ebx
-    call memcpy
-    addl $12, %esp
+    # pushl $16
+    # pushl $fornecedor
+    # pushl %ebx
+    # call memcpy
+    # addl $12, %esp
 
-    addl $16, %ebx  # ebx = novo_no + 44
+    movl    $fornecedor, %eax
+    call    copiar_string
+
+    addl $4, %ebx  # ebx = novo_no + 44
 
     # memcpy(novo_no + 44, &quantidade_estoque, 4)
-    pushl $4
-    pushl $quantidade_estoque
-    pushl %ebx
-    call memcpy
-    addl $12, %esp
+    # pushl $4
+    # pushl $quantidade_estoque
+    # pushl %ebx
+    # call memcpy
+    # addl $12, %esp
+
+    movl    quantidade_estoque, %ecx
+    movl    %ecx, (%ebx)
 
     addl $4, %ebx  # ebx = novo_no + 48
 
     # memcpy(novo_no + 48, &valor_compra, 4)
-    pushl $4
-    pushl $valor_compra
-    pushl %ebx
-    call memcpy
-    addl $12, %esp
+    # pushl $4
+    # pushl $valor_compra
+    # pushl %ebx
+    # call memcpy
+    # addl $12, %esp
+
+    movl    valor_compra, %ecx
+    movl    %ecx, (%ebx)
 
     addl $4, %ebx  # ebx = novo_no + 52
 
     # memcpy(novo_no + 52, &valor_venda, 4)
-    pushl $4
-    pushl $valor_venda
-    pushl %ebx
-    call memcpy
-    addl $12, %esp
+    # pushl $4
+    # pushl $valor_venda
+    # pushl %ebx
+    # call memcpy
+    # addl $12, %esp
+
+    movl    valor_venda, %ecx
+    movl    %ecx, (%ebx)
 
     addl $4, %ebx  # ebx = novo_no + 56
 
     # memset(novo_no + 56, 0, 4)
-    pushl $4
-    pushl $0
-    pushl %ebx
-    call memset
-    addl $12, %esp
+    # pushl $4
+    # pushl $0
+    # pushl %ebx
+    # call memset
+    # addl $12, %esp
+
+    movl    $0, %ecx
+    movl    %ecx, (%ebx)
     
     # strcpy(nome_novo_produto, nome_produto)
     pushl $nome_produto
@@ -1007,14 +1053,17 @@ insercao_produto:
             jne _insercao_produto_no_anterior_nao_zero
 
             _insercao_produto_no_anterior_zero:
-                pushl $4
-                pushl $inicio_lista
+                # pushl $4
+                # pushl $inicio_lista
                 # movl %eax, novo_no
                 movl novo_no, %eax
                 addl $56, %eax
-                pushl %eax
-                call memcpy
-                addl $12, %esp # memcpy(novo_no + 56, &inicio_lista, 4)
+                # pushl %eax
+                # call memcpy
+                # addl $12, %esp # memcpy(novo_no + 56, &inicio_lista, 4)
+
+                movl    inicio_lista, %ecx
+                movl    %ecx, (%eax)
 
                 movl novo_no, %eax
                 movl %eax, inicio_lista # inicio_lista = novo_no
@@ -1022,21 +1071,27 @@ insercao_produto:
                 jmp _insercao_produto_continuar_interno
 
             _insercao_produto_no_anterior_nao_zero:
-                pushl $4
-                pushl $no
+                # pushl $4
+                # pushl $no
                 movl novo_no, %eax
                 addl $56, %eax
-                pushl %eax
-                call memcpy
-                addl $12, %esp # memcpy(novo_no + 56, &no, 4)
+                # pushl %eax
+                # call memcpy
+                # addl $12, %esp # memcpy(novo_no + 56, &no, 4)
                 
-                pushl $4
-                pushl $novo_no
+                movl    no, %ecx
+                movl    %ecx, (%eax)
+
+                # pushl $4
+                # pushl $novo_no
                 movl no_anterior, %eax
                 addl $56, %eax
-                pushl %eax
-                call memcpy
-                addl $12, %esp # memcpy(no_anterior + 56, &novo_no, 4)
+                # pushl %eax
+                # call memcpy
+                # addl $12, %esp # memcpy(no_anterior + 56, &novo_no, 4)
+
+                movl    novo_no, %ecx
+                movl    %ecx, (%eax)
 
                 jmp _insercao_produto_continuar_interno
 
@@ -1055,13 +1110,16 @@ insercao_produto:
         movl no, %eax
         movl %eax, no_anterior # no_anterior - no
 
-        pushl $4
+        # pushl $4
         movl no, %eax
         addl $56, %eax
-        pushl %eax
-        pushl $no
-        call memcpy
-        addl $12, %esp # memcpy(&no, no + 56, 4)
+        # pushl %eax
+        # pushl $no
+        # call memcpy
+        # addl $12, %esp # memcpy(&no, no + 56, 4)
+
+        movl    (%eax), %ecx
+        movl    %ecx, no
 
         jmp _insercao_produto_inicio_laco
 
@@ -1084,13 +1142,16 @@ insercao_produto:
 
     _insercao_produto_fim:
 
-    pushl $4
-    pushl $novo_no
+    # pushl $4
+    # pushl $novo_no
     movl no_anterior, %eax
     addl $56, %eax
-    pushl %eax
-    call memcpy
-    addl $12, %esp  # memcpy(no_anterior + 56, &novo_no, 4)
+    # pushl %eax
+    # call memcpy
+    # addl $12, %esp  # memcpy(no_anterior + 56, &novo_no, 4)
+
+    movl    novo_no, %ecx
+    movl    %ecx, (%eax)
 
     movl tamanho_lista, %eax
     incl %eax
