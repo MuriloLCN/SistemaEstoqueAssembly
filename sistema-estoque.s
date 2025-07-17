@@ -1258,7 +1258,8 @@ relatorio_ordenado_nome:
 
         movl no, %eax
         addl $56, %eax
-        movl (%eax), no
+        movl (%eax), %ebx
+        movl %ebx, no
 
         jmp _relatorio_ord_nome_inicio_laco
     _relatorio_ord_nome_fim_laco:
@@ -1370,7 +1371,6 @@ remocao_produto_nome:
     _remocao_nesimo_elemento:
         movl no_anterior, %edx
         addl $56, %edx
-        pushl %edx
         jmp _remocao_finalizar
 
     _remocao_finalizar:
