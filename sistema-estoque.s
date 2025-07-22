@@ -162,7 +162,7 @@
     .lcomm  no_anterior,    4
     .lcomm  novo_no,        4
     .lcomm  inicio_lista,   4
-    .lcomm  arquivo_ptr,    4
+    .lcomm  descritor_arquivo,    4
     .lcomm  indice_atual_lista, 4
 
     .lcomm  nome_novo_produto, 16
@@ -474,12 +474,6 @@ menu:
 
 
 gravar_no_disco:
-    # abrindo o arquivo com a função fopen
-/*
-    pushl   $modoEscritaArq    # empilhando "wb"
-    pushl   $nomeArquivo        # empilhando "dados.dat"
-    call    fopen
-*/
 	movl 	$8, %eax 	        # opção da chamada open
 	movl 	$nomeArquivo, %ebx  # nome do arquivo a ser aberto, "dados.dat"
 	movl 	$1, %ecx            # opção somente de escrita
@@ -488,24 +482,14 @@ gravar_no_disco:
 	orl 	$80, %edx           # concedendo a permissão de escrita para o usuário
 	int 	$0x80
 
-    movl    %eax, arquivo_ptr   # salvando o ponteiro FILE* em arquivo_ptr
+    movl    %eax, descritor_arquivo   # salvando o ponteiro FILE* em descritor_arquivo
 
     # escrevendo o tamanho da lista no início do arquivo
-/*
-    pushl   %eax                # empilhando o ponteiro FILE*
-    pushl   $1                  # empilhando o numero de blocos a serem escritos
-    pushl   $4                  # empilhando o tamanho de um inteiro (4 bytes)
-    pushl   $tamanho_lista      # empilhando o endereço do tamanho da lista
-    call    fwrite
-*/
-
     movl    $4, %eax                # opção da chamada write
-    movl    arquivo_ptr, %ebx       # destino (arquivo dados.dat)
+    movl    descritor_arquivo, %ebx       # destino (arquivo dados.dat)
     movl    $tamanho_lista, %ecx    # tamanho da lista a ser escrito 
     movl    $4, %edx                # tamamho de um inteiro (4 bytes)
     int     $0x80
-
-    # addl    $24, %esp           # desempilhando os 6 pushl's
 
     movl    inicio_lista, %eax
     movl    %eax, indice_atual_lista         
@@ -523,16 +507,9 @@ gravar_no_disco:
         je      _fim_gravar_no_disco
 
         pushl   %ecx                        # apenas salvando ecx
-/*
-        pushl   arquivo_ptr                 # empilhando o ponteiro FILE*
-        pushl   $1                          # empilhando o numero de blocos a serem escritos
-        pushl   $56                         # empilhando o tamanho de um registro sem o último campo do ponteiro prox (56 bytes)
-        pushl   indice_atual_lista          # empilhando o endereço do começo do registro a ser escrito
-        call    fwrite
-*/
 
         movl    $4, %eax                    # opção da chamada write
-        movl    arquivo_ptr, %ebx           # destino (arquivo dados.dat)
+        movl    descritor_arquivo, %ebx           # destino (arquivo dados.dat)
         movl    indice_atual_lista, %ecx    # registro a ser escrito 
         movl    $56, %edx                   # tamamho de um registro sem o ponteiro final (56 bytes)
         int     $0x80
@@ -549,12 +526,8 @@ gravar_no_disco:
         jmp     _loop_gravar_no_disco
 
     _fim_gravar_no_disco:
-/*    
-        pushl   arquivo_ptr
-        call    fclose
-*/
         movl    $6, %eax                # opção de chamada close
-        movl    arquivo_ptr, %ebx       # arquivo que se deseja fechar
+        movl    descritor_arquivo, %ebx       # arquivo que se deseja fechar
         int     $0x80
 
         pushl   tamanho_lista
@@ -568,37 +541,20 @@ ler_do_disco:
     #   Para não criar mais variáveis, tentei reutilizar o que já estava declarado:
     #   reg_atual_ptr -> no | deslocamento -> %eax | prox -> ponteiro_prox
 
-/*
-    # abrindo o arquivo com a função fopen
-    pushl   $modoLeituraArq    # empilhando "wb"
-    pushl   $nomeArquivo        # empilhando "dados.dat"
-    call    fopen
-*/
 
-    movl    $5, %eax         # numero da chamada de sistema para abertura do arquivo, definida em /usr/include/asm/unistd_32.h
+    movl    $5, %eax                # numero da chamada de sistema para abertura do arquivo, definida em /usr/include/asm/unistd_32.h
     movl    $nomeArquivo, %ebx      # nome do arquivo a ser lido "dados.dat"
     movl    $0, %ecx                # opção de somente leitura
-    # movl    $100, %edx              # opção que o usuário tem permissão para ler
     int     $0x80
 
-    movl    %eax, arquivo_ptr   # salvando o ponteiro FILE* em arquivo_ptr
+    movl    %eax, descritor_arquivo   # salvando o ponteiro FILE* em descritor_arquivo
 
-/*
     # lendo o tamanho da lista presente no arquivo
-    pushl   %eax                # empilhando o ponteiro FILE*
-    pushl   $1                  # empilhando o numero de blocos a serem escritos
-    pushl   $4                  # empilhando o tamanho de um inteiro (4 bytes)
-    pushl   $tamanho_lista      # empilhando o endereço do tamanho da lista
-    call    fread
-*/
-
     movl    $3, %eax                # read
-    movl    arquivo_ptr, %ebx       # descritor do arquivo
+    movl    descritor_arquivo, %ebx       # descritor do arquivo
     movl    $tamanho_lista, %ecx    # destino 
     movl    $4, %edx                # tamanho a ser lido
     int     $0x80
-
-    # addl    $16, %esp           # desempilhando os 6 pushl's da leitura inicial
     
     cmpl    $0, tamanho_lista   # verificando se a lista está vazia
     je      _fim_ler_do_disco
@@ -608,22 +564,13 @@ ler_do_disco:
     movl    %eax, no            # salvando o ponteiro pro espaço alocado para o registro em no
     movl    %eax, inicio_lista  # salvando também o início da lista
     addl    $4, %esp
-/*    
+   
     # lendo o primeiro registro presente no arquivo
-    pushl   arquivo_ptr         # empilhando o ponteiro FILE*
-    pushl   $1                  # empilhando o numero de blocos a serem escritos
-    pushl   $56                 # empilhando o tamanho de um registro sem o campo do ponteiro próximo (56 bytes)
-    pushl   no                 # empilhando o endereço do nó que alocamos
-    call    fread
-*/
-
     movl    $3, %eax                # read
-    movl    arquivo_ptr, %ebx       # descritor do arquivo
+    movl    descritor_arquivo, %ebx       # descritor do arquivo
     movl    no, %ecx    # destino 
     movl    $56, %edx                # tamanho a ser lido
     int     $0x80
-
-    # addl    $20, %esp           # desempilhando os últimos 5 pushl's
 
     movl    $1, %ecx
     _loop_ler_do_disco:
@@ -637,20 +584,12 @@ ler_do_disco:
         movl    %eax, ponteiro_prox 
         addl    $4, %esp
 
-/*
-        pushl   arquivo_ptr         # empilhando o ponteiro FILE*
-        pushl   $1                  # empilhando o numero de blocos a serem escritos
-        pushl   $56                 # empilhando o tamanho de um registro sem o campo do ponteiro próximo (56 bytes)
-        pushl   ponteiro_prox       # empilhando o endereço do nó que alocamos
-        call    fread
-*/
         movl    $3, %eax                # read
-        movl    arquivo_ptr, %ebx       # descritor do arquivo
+        movl    descritor_arquivo, %ebx       # descritor do arquivo
         movl    ponteiro_prox, %ecx    # destino 
         movl    $56, %edx                # tamanho a ser lido
         int     $0x80        
 
-        # addl    $20, %esp           # desempilhando os últimos 5 pushl's
         popl    %ecx                # recuperando o ecx
         incl    %ecx                # incrementando o contador
         
@@ -671,12 +610,8 @@ ler_do_disco:
         movl    $0, %ebx
         movl    %ebx, (%eax)          # aterrando o último ponteiro para o próximo elemento
 
-/*
-        pushl   arquivo_ptr
-        call    fclose
-*/
         movl    $6, %eax                # opção de chamada close
-        movl    arquivo_ptr, %ebx       # arquivo que se deseja fechar
+        movl    descritor_arquivo, %ebx       # arquivo que se deseja fechar
         int     $0x80
 
         pushl   tamanho_lista
