@@ -474,6 +474,7 @@ menu:
 
 
 gravar_no_disco:
+    # abrindo o arquivo com a syscall open
 	movl 	$8, %eax 	        # opção da chamada open
 	movl 	$nomeArquivo, %ebx  # nome do arquivo a ser aberto, "dados.dat"
 	movl 	$1, %ecx            # opção somente de escrita
@@ -509,7 +510,7 @@ gravar_no_disco:
         pushl   %ecx                        # apenas salvando ecx
 
         movl    $4, %eax                    # opção da chamada write
-        movl    descritor_arquivo, %ebx           # destino (arquivo dados.dat)
+        movl    descritor_arquivo, %ebx     # destino (arquivo dados.dat)
         movl    indice_atual_lista, %ecx    # registro a ser escrito 
         movl    $56, %edx                   # tamamho de um registro sem o ponteiro final (56 bytes)
         int     $0x80
@@ -526,7 +527,7 @@ gravar_no_disco:
         jmp     _loop_gravar_no_disco
 
     _fim_gravar_no_disco:
-        movl    $6, %eax                # opção de chamada close
+        movl    $6, %eax                      # opção de chamada close
         movl    descritor_arquivo, %ebx       # arquivo que se deseja fechar
         int     $0x80
 
@@ -541,7 +542,7 @@ ler_do_disco:
     #   Para não criar mais variáveis, tentei reutilizar o que já estava declarado:
     #   reg_atual_ptr -> no | deslocamento -> %eax | prox -> ponteiro_prox
 
-
+    # abrindo o arquivo com a syscall open
     movl    $5, %eax                # numero da chamada de sistema para abertura do arquivo, definida em /usr/include/asm/unistd_32.h
     movl    $nomeArquivo, %ebx      # nome do arquivo a ser lido "dados.dat"
     movl    $0, %ecx                # opção de somente leitura
@@ -584,10 +585,10 @@ ler_do_disco:
         movl    %eax, ponteiro_prox 
         addl    $4, %esp
 
-        movl    $3, %eax                # read
-        movl    descritor_arquivo, %ebx       # descritor do arquivo
-        movl    ponteiro_prox, %ecx    # destino 
-        movl    $56, %edx                # tamanho a ser lido
+        movl    $3, %eax                    # read
+        movl    descritor_arquivo, %ebx     # descritor do arquivo
+        movl    ponteiro_prox, %ecx         # destino 
+        movl    $56, %edx                   # tamanho a ser lido
         int     $0x80        
 
         popl    %ecx                # recuperando o ecx
@@ -1604,9 +1605,18 @@ _rel_ord_inner_loop_fim:
     incl i_loop
     jmp _rel_ord_outer_loop
 _rel_ord_sort_fim:
-
     # 3. Imprimir
+    movl op_ordenacao, %edx
+    cmpl $0, %edx
+    je _mostra_banner_validade
+    
     pushl $txtBannerOrdEstoque
+    jmp _fim_banner
+
+    _mostra_banner_validade:
+    pushl $txtBannerOrdValidade
+
+    _fim_banner:
     call printf
     addl $4, %esp
 
