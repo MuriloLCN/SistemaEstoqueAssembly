@@ -85,7 +85,7 @@
 
     # strings da função de print_no
     txtPrintNulo:       .asciz  "\nNó nulo"
-    txtPrintNo:         .asciz  "\nProduto:\t\t%s \nLote:\t\t\t%d \nData de validade:\t%d \nFornecedor:\t\t%s \nQuantidade no estoque:\t%d\nValor de compra:\t%d \nValor de venda:\t\t%d \nTipo:\t\t\t"
+    txtPrintNo:         .asciz  "\nProduto:\t\t%s \nLote:\t\t\t%d \nData de validade:\t%d \nFornecedor:\t\t%s \nQuantidade no estoque:\t%d\nValor de compra:\t%.2f \nValor de venda:\t\t%.2f \nTipo:\t\t\t"
     txtPrintHigiene:    .asciz  "Higiene\n"  
     txtPrintLimpeza:    .asciz  "Limpeza\n"  
     txtPrintPereciveis: .asciz  "Perecíveis\n"  
@@ -120,10 +120,10 @@
     # strings da consulta financeira
     txtFinNenhumProd:   .asciz  "\nNenhum produto no estoque para calcular.\n"
     txtFinBanner:       .asciz  "\n--- Resultado da Consulta Financeira ---\n"
-    txtFinResCompra:    .asciz  "Total de Compra (custo do estoque): R$ %d\n"
-    txtFinResVenda:     .asciz  "Total de Venda (potencial de receita): R$ %d\n"
-    txtFinResLucro:     .asciz  "Lucro Total (potencial): R$ %d\n"
-    txtFinResPerda:     .asciz  "Capital Perdido (produtos vencidos): R$ %d\n"
+    txtFinResCompra:    .asciz  "Total de Compra (custo do estoque): R$ %.2f\n"
+    txtFinResVenda:     .asciz  "Total de Venda (potencial de receita): R$ %.2f\n"
+    txtFinResLucro:     .asciz  "Lucro Total (potencial): R$ %.2f\n"
+    txtFinResPerda:     .asciz  "Capital Perdido (produtos vencidos): R$ %.2f\n"
 
     # strings dos relatorios
     txtNenhumProdRel:   .asciz  "\nNenhum produto no estoque para exibir.\n"
@@ -148,8 +148,8 @@
     quantidade_estoque:     .int    0
     op_menu:                .int    0
     resultado_comparacao:   .int    0
-    valor_compra:           .int    0
-    valor_venda:            .int    0
+    valor_compra:           .float    0
+    valor_venda:            .float    0
     max_itens:              .int    256
     op_ordenacao:           .int    0
 
@@ -190,6 +190,8 @@
 main:
     pushl   $limpaTerminal      # limpando o terminal para a execução do programa
     call    system          
+
+    finit
 
     call    mostra_banner
 
@@ -823,7 +825,7 @@ pegar_dados_produto_input:
     addl $4, %esp
 
     pushl $valor_compra
-    pushl $formatoINT
+    pushl $formatoFLOAT
     call scanf
     addl $8, %esp
 
@@ -833,7 +835,7 @@ pegar_dados_produto_input:
     addl $4, %esp
 
     pushl $valor_venda
-    pushl $formatoINT
+    pushl $formatoFLOAT
     call scanf
     addl $8, %esp
 
@@ -1102,18 +1104,19 @@ consulta:
         call print_no
         RET
 
-debug_print:
-    pushl valor_venda
-    pushl valor_compra
-    pushl quantidade_estoque
-    pushl $fornecedor
-    pushl data_validade
-    pushl lote_produto
-    pushl $nome_produto
-    pushl $txtPrintNo
-    call printf
-    addl $32, %esp
-    RET
+
+// debug_print:
+//     pushl valor_venda
+//     pushl valor_compra
+//     pushl quantidade_estoque
+//     pushl $fornecedor
+//     pushl data_validade
+//     pushl lote_produto
+//     pushl $nome_produto
+//     pushl $txtPrintNo
+//     call printf
+//     addl $32, %esp
+//     RET
 
 print_no:
     movl no, %eax
@@ -1129,8 +1132,16 @@ print_no:
     
     call carregar_dados_no
     
-    pushl valor_venda
-    pushl valor_compra
+    flds valor_venda
+    subl $8, %esp
+    fstpl (%esp)
+    # pushl valor_venda
+
+    flds valor_compra
+    subl $8, %esp
+    fstpl (%esp)
+    #pushl valor_compra
+    
     pushl quantidade_estoque
     pushl $fornecedor
     pushl data_validade
@@ -1138,7 +1149,7 @@ print_no:
     pushl $nome_produto
     pushl $txtPrintNo
     call printf
-    addl $32, %esp
+    addl $40, %esp
 
     movl tipo_produto, %eax
 
@@ -1309,7 +1320,7 @@ atualizacao_produto:
     addl $4, %esp
     
     pushl $valor_venda   # pede novo valor de venda
-    pushl $formatoINT
+    pushl $formatoFLOAT
     call scanf
     addl $8, %esp
     
@@ -1397,10 +1408,15 @@ remocao_produto_nome:
 
 consulta_financeira:
     # Zera as variáveis de total
-    movl $0, total_compra
-    movl $0, total_venda
-    movl $0, capital_perdido
 
+    movl $0, %eax
+    movl %eax, lixo
+
+    flds lixo
+    fstl total_compra
+    fstl total_venda
+    fstpl capital_perdido # no último a gente tira da pilha
+    
     # Verifica se a lista está vazia
     movl inicio_lista, %eax
     cmpl $0, %eax
@@ -1421,25 +1437,52 @@ _consulta_financeira_loop:
 
     call carregar_dados_no
 
-    movl quantidade_estoque, %eax
-    movl valor_compra, %ebx
-    mull %ebx
-    addl %eax, total_compra
+    filds quantidade_estoque  
+    flds valor_compra
+    fmul %st(1), %st(0)    # st0 = valor compra * qtd estoque
+    flds total_compra
+    fadd %st(1), %st(0)
+    fstps total_compra
+    fstps lixo  # limpando a pilha
+    fstps lixo 
     
-    movl quantidade_estoque, %eax
-    movl valor_venda, %ebx
-    mull %ebx
-    addl %eax, total_venda
+    // movl quantidade_estoque, %eax
+    // movl valor_compra, %ebx
+    // mull %ebx
+    // addl %eax, total_compra
+
+    filds quantidade_estoque  
+    flds valor_venda
+    fmul %st(1), %st(0)    # st0 = valor compra * qtd estoque
+    flds total_venda
+    fadd %st(1), %st(0)
+    fstps total_venda
+    fstps lixo  # limpando a pilha
+    fstps lixo 
+    
+    // movl quantidade_estoque, %eax
+    // movl valor_venda, %ebx
+    // mull %ebx
+    // addl %eax, total_venda
     
     movl data_validade, %eax
     movl data_atual, %ebx
     cmpl %ebx, %eax
     jge _consulta_financeira_proximo_no # se data_validade >= data_atual, não está vencido
 
-    movl quantidade_estoque, %eax
-    movl valor_compra, %ebx
-    mull %ebx
-    addl %eax, capital_perdido
+    // movl quantidade_estoque, %eax
+    // movl valor_compra, %ebx
+    // mull %ebx
+    // addl %eax, capital_perdido
+
+    filds quantidade_estoque  
+    flds valor_compra
+    fmul %st(1), %st(0)    # st0 = valor compra * qtd estoque
+    flds capital_perdido
+    fadd %st(1), %st(0)
+    fstps capital_perdido
+    fstps lixo  # limpando a pilha
+    fstps lixo 
 
 _consulta_financeira_proximo_no:
     movl ponteiro_prox, %eax
@@ -1463,33 +1506,51 @@ _consulta_financeira_fim_loop:
     jmp _consulta_financeira_fim
 
 _print_total_compra:
-    pushl total_compra
+
+    flds total_compra
+    subl $8, %esp
+    fstpl (%esp)
+    // pushl total_compra
     pushl $txtFinResCompra
     call printf
-    addl $8, %esp
+    addl $12, %esp
     jmp _consulta_financeira_fim
 
 _print_total_venda:
-    pushl total_venda
+    flds total_venda
+    subl $8, %esp
+    fstpl (%esp)
+    // pushl total_venda
     pushl $txtFinResVenda
     call printf
-    addl $8, %esp
+    addl $12, %esp
     jmp _consulta_financeira_fim
 
 _print_lucro:
-    movl total_venda, %eax
-    subl total_compra, %eax
-    pushl %eax
+    flds total_compra
+    flds total_venda
+    fsub %st(1), %st(0) # st(0) = venda - compra
+
+    subl $8, %esp
+    fstpl (%esp)
+    fstpl lixo
+    // movl total_venda, %eax
+    // subl total_compra, %eax
+    // pushl %eax
+    
     pushl $txtFinResLucro
     call printf
-    addl $8, %esp
+    addl $12, %esp
     jmp _consulta_financeira_fim
 
 _print_capital_perdido:
-    pushl capital_perdido
+    flds capital_perdido
+    subl $8, %esp
+    fstpl (%esp)
+    // pushl capital_perdido
     pushl $txtFinResPerda
     call printf
-    addl $8, %esp
+    addl $12, %esp
 
 _consulta_financeira_fim:
     RET
